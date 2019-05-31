@@ -1,0 +1,14 @@
+sudo: false
+
+notifications:
+  email: false
+
+branches:
+  only:
+    - master
+
+script:
+  - echo "Placeholder build is always successful"
+
+
+
