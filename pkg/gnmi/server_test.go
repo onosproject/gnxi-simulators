@@ -26,8 +26,8 @@ import (
 
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 
-	"github.com/google/gnxi/gnmi/modeldata"
-	"github.com/google/gnxi/gnmi/modeldata/gostruct"
+	"github.com/onosproject/simulators/pkg/gnmi/modeldata"
+	"github.com/onosproject/simulators/pkg/gnmi/modeldata/gostruct"
 )
 
 var (

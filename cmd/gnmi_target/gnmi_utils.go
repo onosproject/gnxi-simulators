@@ -83,7 +83,10 @@ func (s *server) getUpdate(subList *pb.SubscriptionList, path *pb.Path) (*pb.Upd
 	jsonConfigString, _ := ygot.EmitJSON(s.configStruct, nil)
 	configMap := make(map[string]interface{})
 
-	json.Unmarshal([]byte(jsonConfigString), &configMap)
+	err := json.Unmarshal([]byte(jsonConfigString), &configMap)
+	if err != nil {
+		return nil, err
+	}
 	pathElements := path.GetElem()
 
 	leafValue, _ := utils.FindLeaf(configMap, pathElements[len(pathElements)-1].GetName())
