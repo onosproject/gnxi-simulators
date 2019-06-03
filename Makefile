@@ -8,7 +8,7 @@ ONOS_BUILD_VERSION := stable
 all: image
 
 image: # @HELP build simulators image
-	docker run --rm -it -v `pwd`:/go/src/github.com/onosproject/simulators onosproject/onos-config-build:${ONOS_BUILD_VERSION} 
+	docker run -it -v `pwd`:/go/src/github.com/onosproject/simulators -w "/go/src/github.com/onosproject/simulators"  onosproject/onos-config-build:${ONOS_BUILD_VERSION} build -e GO111MODULE=on
 	docker build . -f build/simulators/Dockerfile \
 	--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 	-t onosproject/simulators:${ONOS_SIMULATORS_VERSION}
