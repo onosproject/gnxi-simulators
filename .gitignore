@@ -1,2 +1,7 @@
-certs/onfca.srl
-certs/device*
+cmd/gnmi_target/gnmi_target
+cmd/dispatcher_main/dispatcher_main
+vendor
+build/_output
+*.DS_Store
+coverage.txt
+*.coverprofile

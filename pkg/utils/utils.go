@@ -20,7 +20,7 @@ import (
 
 var leafValue string
 
-// findLeaf finds a leaf in the given JSON tree that is stored in a map.
+// FindLeaf finds a leaf in the given JSON tree that is stored in a map.
 func FindLeaf(aMap map[string]interface{}, leaf string) (string, error) {
 	for key, val := range aMap {
 		switch concreteVal := val.(type) {
@@ -40,6 +40,7 @@ func FindLeaf(aMap map[string]interface{}, leaf string) (string, error) {
 
 }
 
+// ParseArray Parses a given array
 func ParseArray(array []interface{}, leaf string) {
 	for _, val := range array {
 		switch val.(type) {

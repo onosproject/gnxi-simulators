@@ -20,8 +20,8 @@ import (
 	"time"
 
 	log "github.com/golang/glog"
-	"github.com/onosproject/onos-config/tools/test/devicesim/pkg/dispatcher"
-	"github.com/onosproject/onos-config/tools/test/devicesim/pkg/events"
+	"github.com/onosproject/simulators/pkg/dispatcher"
+	"github.com/onosproject/simulators/pkg/events"
 )
 
 func eventProducer(dispatcher *dispatcher.Dispatcher) {
