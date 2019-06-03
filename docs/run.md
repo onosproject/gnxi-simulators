@@ -95,7 +95,7 @@ docker build -t onosproject/devicesim:stable -f Dockerfile .
 You can access to the information about client tools for each SIM_MODE
 including troubleshooting tips using the following links: 
 
-[gNMI Client_User Manual](gnmi_user_manual.md)
+[gNMI Client_User Manual](gnmi/gnmi_user_manual.md)
 
-[gNOI Client_User Manual](gnoi_user_manual.md)
+[gNOI Client_User Manual](gnoi/gnoi_user_manual.md)
 
