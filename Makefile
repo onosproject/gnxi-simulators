@@ -1,3 +1,4 @@
+
 export CGO_ENABLED=0
 
 .PHONY: build
