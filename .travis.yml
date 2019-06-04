@@ -8,7 +8,7 @@ branches:
     - master
 
 script:
-  - env docker run -e GO111MODULE="on" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it -v `pwd`:/go/src/github.com/onosproject/simulators -w "/go/src/github.com/onosproject/simulators" onosproject/onos-config-build:stable build
+  - env docker run -e GO111MODULE="on" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it -v `pwd`:/go/src/github.com/onosproject/simulators -w "/go/src/github.com/onosproject/simulators" onosproject/golang-build:stable build
 
 
 
