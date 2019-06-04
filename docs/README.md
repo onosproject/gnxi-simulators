@@ -10,9 +10,9 @@ All commands below assume you are in the __devicesim__ directory
 ## Simulator mode
 The device simulator can operate in three modes, controlled
 using **SIM_MODE** environment variable in the docker-compose file. 
-1) SIM_MODE=1 as gNMI target only. The configuration is loaded by default from [target_configs/typical_ofsw_config.json](target_configs/typical_ofsw_config.json)
+1) SIM_MODE=1 as gNMI target only. The configuration is loaded by default from [configs/target_configs/typical_ofsw_config.json](../configs/target_configs/typical_ofsw_config.json)
 2) SIM_MODE=2 as gNOI target only. It supports *Certificate management* that can be used for certificate installation and rotation. 
-3) SIM_MODE=3 both gNMI and gNOI targets simultaneously
+3) SIM_MODE=3 both gNMI and gNOsI targets simultaneously
 
 ## Run mode - localhost or network
 Additionally the simulator can be run in
@@ -27,7 +27,7 @@ Docker compose manages the running of several docker images at once.
 
 For example to run 3 **SIM_MODE=1** (gNMI only devices) and **localhost** mode, use: 
 ```bash
-cd docker_compose
+cd tools/docker_compose
 docker-compose -f docker-compose-gnmi.yml up
 ```
 
@@ -52,7 +52,7 @@ If you are fortunate enough to be using Docker on Linux, then you can use the
 above method __or__ using the command below to start in **SIM_MODE=1** and **network** mode:
 
 ```bash
-cd docker_compose
+cd tools/docker_compose
 docker-compose -f docker-compose-linux.yml up
 ```
 
