@@ -1,6 +1,6 @@
 ARG ONOS_BUILD_VERSION=stable
 
-FROM onosproject/onos-config-build:$ONOS_BUILD_VERSION as builder
+FROM onosproject/golang-build:$ONOS_BUILD_VERSION as builder
 COPY . /go/src/github.com/onosproject/simulators
 RUN export GO111MODULE="on" && cd /go/src/github.com/onosproject/simulators && make build
 
