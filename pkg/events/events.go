@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package events define a generic type of event for implementing of
+// an event distribution mechanism.
 package events
 
 import (

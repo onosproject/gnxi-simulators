@@ -1,6 +1,7 @@
 # simulators
 [![Build Status](https://travis-ci.org/onosproject/simulators.svg?branch=master)](https://travis-ci.org/onosproject/simulators)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gojp/goreportcard/blob/master/LICENSE)
+[![GoDoc](https://godoc.org/github.com/onosproject/simulators?status.svg)](https://godoc.org/github.com/onosproject/simulators)
 
 Simple simulators, used for integration testing of ONOS interactions with devices and various orchestration entities, e.g:
 

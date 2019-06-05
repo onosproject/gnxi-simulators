@@ -144,6 +144,58 @@ After running the above command the following output will be printed on the scre
 }
 ```
 
+### Subscribe Stream
+Stream subscriptions are long-lived subscriptions which continue to transmit updates relating to the set of paths that are covered within the subscription indefinitely. The current implementaiton of the simulator supports the following stream modes: 
+
+#### ON_CHANGE
+When a subscription is defined to be "on change", data updates are only sent when the value of the data item changes. To test this mode, you should follow the following steps: 
+
+1. First you need to run the following command to subcribe for the events on a path:
+```bash
+gnmi_cli -address localhost:10161 \
+    -proto "subscribe:<mode: 0, prefix:<>, subscription:<path: <elem: <name: 'openconfig-system:system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>>>>" \
+    -timeout 5s -alsologtostderr \
+    -polling_interval 5s \
+    -client_crt certs/client1.crt -client_key certs/client1.key -ca_crt certs/onfca.crt
+```
+
+After running the above command, you need to make a change in the timezone-name using set command as follows to get an update from the target about that change. 
+
+```bash
+gnmi_cli -address localhost:10161  \
+       -set \
+       -proto "update:<path: <elem: <name: 'system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>> val: <string_val: 'Europe/Spain'>>"  \
+       -timeout 5s \
+       -alsologtostderr  \
+       -client_crt certs/client1.crt \
+       -client_key certs/client1.key \
+       -ca_crt certs/onfca.crt
+```
+
+The output in the terminal which runs subscribe stream will be like this: 
+```bash
+{
+  "system": {
+    "clock": {
+      "config": {
+        "timezone-name": "Europe/Spain"
+      }
+    }
+  }
+}
+{
+  "system": {
+    "clock": {
+      "config": {
+        "timezone-name": "Europe/Spain"
+      }
+    }
+  }
+}
+```
+
+
+
 ## Troubleshooting
 
 ### Deadline exceeded
