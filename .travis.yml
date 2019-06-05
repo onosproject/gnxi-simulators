@@ -1,5 +1,7 @@
 sudo: false
 
+language: golang
+
 notifications:
   email: false
 
@@ -10,5 +12,7 @@ branches:
 script:
   - env docker run -e GO111MODULE="on" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it -v `pwd`:/go/src/github.com/onosproject/simulators -w "/go/src/github.com/onosproject/simulators" onosproject/golang-build:stable build
 
-
-
+cache:
+  directories:
+    - $HOME/.cache/go-build        # Cache the binaries
+    - $HOME/gopath/pkg/mod         # Cache the Go modules
