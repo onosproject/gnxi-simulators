@@ -34,5 +34,16 @@ func (s *server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse, 
 	setResponse, err := s.Server.Set(ctx, req)
 	// Update gnmi target config store by retrieving it from the Server
 	s.configStruct, _ = s.Server.GetConfig()
+	// Prepare an update for subscribe stream and send it over update channel.
+	for _, response := range setResponse.GetResponse() {
+		update := &pb.Update{
+			Path: response.GetPath(),
+		}
+		select {
+		case s.UpdateChann <- update:
+		default:
+
+		}
+	}
 	return setResponse, err
 }

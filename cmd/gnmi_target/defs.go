@@ -29,9 +29,9 @@ var (
 
 type server struct {
 	*gnmi.Server
-	Model          *gnmi.Model
-	configStruct   ygot.ValidatedGoStruct
-	PathToChannels map[*pb.Path]chan *pb.Update
+	Model        *gnmi.Model
+	configStruct ygot.ValidatedGoStruct
+	UpdateChann  chan *pb.Update
 }
 
 type streamClient struct {

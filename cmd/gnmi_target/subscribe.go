@@ -16,18 +16,84 @@ package main
 
 import (
 	"io"
+	"reflect"
+	"time"
 
 	log "github.com/golang/glog"
+	"github.com/onosproject/simulators/pkg/dispatcher"
+	"github.com/onosproject/simulators/pkg/events"
+
 	"github.com/openconfig/gnmi/proto/gnmi"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 )
+
+// eventProducer produces update events for stream subscribers
+func (s *server) eventProducer(dispatcher *dispatcher.Dispatcher,
+	subscribe *pb.SubscriptionList) {
+	for update := range s.UpdateChann {
+		for _, sub := range subscribe.Subscription {
+
+			if reflect.DeepEqual(sub.GetPath().String(), update.GetPath().String()) {
+				newValue, _ := s.getUpdate(subscribe, update.GetPath())
+				subject := "subscribe_stream"
+				update.Val = newValue.Val
+
+				event := &events.ConfigEvent{
+					Subject: subject,
+					Time:    time.Now(),
+					Etype:   events.EventTypeConfiguration,
+					Values:  update,
+				}
+				dispatcher.Dispatch(event)
+			}
+
+		}
+
+	}
+}
+
+// sendStreamResults stream updates to the subscribed clients.
+func (s *server) sendStreamResults(subscribe *gnmi.SubscriptionList,
+	stream pb.GNMI_SubscribeServer) {
+	dispatcher := dispatcher.NewDispatcher()
+	ok := dispatcher.RegisterEvent((*events.ConfigEvent)(nil))
+
+	if !ok {
+		log.Error("Cannot register an event")
+	}
+
+	ch := make(chan events.ConfigEvent, 100)
+	ok = dispatcher.RegisterListener(ch)
+
+	if !ok {
+		log.Error("Cannot register the listener")
+	}
+	go s.eventProducer(dispatcher, subscribe)
+	for result := range ch {
+
+		var update *pb.Update
+		update = result.GetValues().(*pb.Update)
+
+		response, _ := buildSubResponse(update)
+
+		s.sendResponse(response, stream)
+		responseSync := &pb.SubscribeResponse_SyncResponse{
+			SyncResponse: true,
+		}
+		response = &pb.SubscribeResponse{
+			Response: responseSync,
+		}
+		s.sendResponse(response, stream)
+
+	}
+}
 
 // Subscribe overrides the Subscribe function to implement it.
 func (s *server) Subscribe(stream pb.GNMI_SubscribeServer) error {
 	c := streamClient{stream: stream}
 	var err error
 	updateChan := make(chan *pb.Update)
-	var subscribe *gnmi.SubscriptionList
+	var subscribe *pb.SubscriptionList
 	var mode gnmi.SubscriptionList_Mode
 
 	for {
@@ -60,10 +126,7 @@ func (s *server) Subscribe(stream pb.GNMI_SubscribeServer) error {
 			<-done
 			return nil
 		} else if mode == pb.SubscriptionList_STREAM {
-			subs := subscribe.Subscription
-			for _, sub := range subs {
-				s.PathToChannels[sub.Path] = updateChan
-			}
+			s.sendStreamResults(subscribe, stream)
 
 			return nil
 		}

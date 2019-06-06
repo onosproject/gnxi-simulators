@@ -36,7 +36,11 @@ func newServer(model *gnmi.Model, config []byte) (*server, error) {
 	}
 
 	newconfig, _ := model.NewConfigStruct(config)
-	server := server{Server: s, Model: model, configStruct: newconfig}
+	channelUpdate := make(chan *pb.Update)
+	server := server{Server: s, Model: model,
+		configStruct: newconfig,
+		UpdateChann:  channelUpdate}
+
 	return &server, nil
 }
 
@@ -46,7 +50,7 @@ func (s *server) sendResponse(response *pb.SubscribeResponse, stream pb.GNMI_Sub
 	err := stream.Send(response)
 	if err != nil {
 		//TODO remove channel registrations
-		log.Errorf("Error in sending response to client")
+		log.Errorf("Error in sending response to client %v", err)
 	}
 }
 
