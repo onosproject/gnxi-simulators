@@ -15,4 +15,4 @@ script:
 cache:
   directories:
     - $HOME/.cache/go-build        # Cache the binaries
-    - $HOME/gopath/pkg/mod         # Cache the Go modules
+    - $GOPATH/pkg/mod         # Cache the Go modules
