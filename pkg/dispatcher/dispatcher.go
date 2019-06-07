@@ -15,9 +15,10 @@
 package dispatcher
 
 import (
-	"fmt"
 	"reflect"
 	"sync"
+
+	log "github.com/golang/glog"
 
 	"github.com/onosproject/simulators/pkg/events"
 )
@@ -41,7 +42,7 @@ func (d *Dispatcher) RegisterEvent(event events.Event) bool {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	typ := reflect.TypeOf(event).Elem()
-	fmt.Println(typ)
+	log.Info("Registering the ", typ)
 	if _, ok := d.handlers[typ]; ok {
 		return false
 	}
