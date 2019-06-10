@@ -1,6 +1,9 @@
+ARG ONOS_BUILD_VERSION=stable
 FROM debian:stretch
 LABEL maintainer="Sean Condon <sean@opennetworking.org>, Adib Rastegarnia <adib@opennetworking.org> "
 LABEL description="Builds a gNMI/gNOI simulator on a Debian distribution"
+
+
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qy --no-install-recommends \
