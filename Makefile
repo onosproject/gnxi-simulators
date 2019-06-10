@@ -11,7 +11,7 @@ image: # @HELP build simulators image
 	docker run -it -v `pwd`:/go/src/github.com/onosproject/simulators -w "/go/src/github.com/onosproject/simulators"  onosproject/golang-build:${ONOS_BUILD_VERSION} build -e GO111MODULE=on
 	docker build . -f build/simulators/Dockerfile \
 	--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
-	-t onosproject/device-simulators:${ONOS_SIMULATORS_VERSION}
+	-t onosproject/device-simulator:${ONOS_SIMULATORS_VERSION}
 
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...
