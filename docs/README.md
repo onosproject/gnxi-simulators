@@ -88,7 +88,7 @@ To stop it use "docker kill"
 By default the docker compose command will pull down the latest docker
 image from the Docker Hub. If you need to build it locally, run:
 ```bash
-docker build -t onosproject/devicesim:stable -f Dockerfile .
+docker build -t onosproject/device-simulator:stable -f Dockerfile .
 ```
 
 # Client tools for testing
