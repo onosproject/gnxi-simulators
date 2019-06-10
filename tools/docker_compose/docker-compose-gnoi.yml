@@ -21,7 +21,7 @@ services:
     labels:
       description: "gNOI Simulator Device 2"
   devicesim3:
-    image: onosproject/device-simulatorstable
+    image: onosproject/device-simulator:stable
     environment:
       - HOSTNAME=localhost      -
       - GNOI_PORT=50003
