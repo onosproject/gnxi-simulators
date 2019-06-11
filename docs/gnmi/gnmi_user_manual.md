@@ -294,7 +294,7 @@ Starting with TCP - see if you can ping the device
    other network problem
 2. by short name e.g. device1 - if not maybe your /etc/hosts file is wrong or
    DNS domain search is not opennetworking.org
-3. by long name e.g. device1.opennetowrking.org - if not maybe your /etc/hosts
+3. by long name e.g. device1.opennetworking.org - if not maybe your /etc/hosts
    file is wrong
 
 For the last 2 cases make sure that the IP address that is resolved matches what
