@@ -15,21 +15,13 @@
 // Package gnmi implements a gnmi server to mock a device with YANG models.
 package gnmi
 
-// NewServer creates an instance of Server with given json config.
-func NewServer(model *Model, config []byte, callback ConfigCallback) (*Server, error) {
-	rootStruct, err := model.NewConfigStruct(config)
-	if err != nil {
-		return nil, err
-	}
-	s := &Server{
-		model:    model,
-		config:   rootStruct,
-		callback: callback,
-	}
-	if config != nil && s.callback != nil {
-		if err := s.callback(rootStruct); err != nil {
-			return nil, err
-		}
-	}
-	return s, nil
+import (
+	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+// Subscribe method is not implemented.
+func (s *Server) Subscribe(stream pb.GNMI_SubscribeServer) error {
+	return status.Error(codes.Unimplemented, "Subscribe is not implemented.")
 }

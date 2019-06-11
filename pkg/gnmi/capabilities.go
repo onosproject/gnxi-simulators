@@ -15,21 +15,22 @@
 // Package gnmi implements a gnmi server to mock a device with YANG models.
 package gnmi
 
-// NewServer creates an instance of Server with given json config.
-func NewServer(model *Model, config []byte, callback ConfigCallback) (*Server, error) {
-	rootStruct, err := model.NewConfigStruct(config)
+import (
+	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+// Capabilities returns supported encodings and supported models.
+func (s *Server) Capabilities(ctx context.Context, req *pb.CapabilityRequest) (*pb.CapabilityResponse, error) {
+	ver, err := getGNMIServiceVersion()
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "error in getting gnmi service version: %v", err)
 	}
-	s := &Server{
-		model:    model,
-		config:   rootStruct,
-		callback: callback,
-	}
-	if config != nil && s.callback != nil {
-		if err := s.callback(rootStruct); err != nil {
-			return nil, err
-		}
-	}
-	return s, nil
+	return &pb.CapabilityResponse{
+		SupportedModels:    s.model.modelData,
+		SupportedEncodings: supportedEncodings,
+		GNMIVersion:        *ver,
+	}, nil
 }
