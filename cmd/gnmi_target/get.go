@@ -15,6 +15,9 @@
 package main
 
 import (
+	"strings"
+	"time"
+
 	log "github.com/golang/glog"
 	"github.com/google/gnxi/utils/credentials"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
@@ -30,6 +33,27 @@ func (s *server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		log.Infof("denied a Get request: %v", msg)
 		return nil, status.Error(codes.PermissionDenied, msg)
 	}
+	paths := req.GetPath()
+	notifications := make([]*pb.Notification, len(paths))
+	ts := time.Now().UnixNano()
+
+	// To make the implementation simple,
+	// for now we assumed that the request for
+	// getting read only value has one path in its request.
+	for i, path := range paths {
+		if strings.Compare(path.String(), readOnlyPath) == 0 {
+			update := s.readOnlyUpdateValue
+			notifications[i] = &pb.Notification{
+				Timestamp: ts,
+				Prefix:    req.GetPrefix(),
+				Update:    []*pb.Update{update},
+			}
+			resp := &pb.GetResponse{Notification: notifications}
+			return resp, nil
+		}
+
+	}
+
 	log.Infof("allowed a Get request: %v", msg)
 	return s.Server.Get(ctx, req)
 }

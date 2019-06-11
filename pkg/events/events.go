@@ -27,10 +27,11 @@ type EventType uint16
 const ( // For event types
 	EventTypeConfiguration EventType = iota
 	EventTypeOperationalState
+	EventTypeRandom
 )
 
 func (et EventType) String() string {
-	return [...]string{"Configuration", "OperationalState"}[et]
+	return [...]string{"Configuration", "OperationalState", "RandomEvent"}[et]
 }
 
 // Event an interface which defines the Event methods
