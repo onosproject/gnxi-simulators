@@ -39,18 +39,18 @@ var (
 	ModelData = []*pb.ModelData{{
 		Name:         OpenconfigInterfacesModel,
 		Organization: "OpenConfig working group",
-		Version:      "2.0.0",
+		Version:      "2017-07-14",
 	}, {
 		Name:         OpenconfigOpenflowModel,
 		Organization: "OpenConfig working group",
-		Version:      "0.1.0",
+		Version:      "2017-06-01",
 	}, {
 		Name:         OpenconfigPlatformModel,
 		Organization: "OpenConfig working group",
-		Version:      "0.5.0",
+		Version:      "2016-12-22",
 	}, {
 		Name:         OpenconfigSystemModel,
 		Organization: "OpenConfig working group",
-		Version:      "0.2.0",
+		Version:      "2017-07-06",
 	}}
 )
