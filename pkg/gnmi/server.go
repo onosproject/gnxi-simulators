@@ -15,6 +15,10 @@
 // Package gnmi implements a gnmi server to mock a device with YANG models.
 package gnmi
 
+import (
+	pb "github.com/openconfig/gnmi/proto/gnmi"
+)
+
 // NewServer creates an instance of Server with given json config.
 func NewServer(model *Model, config []byte, callback ConfigCallback) (*Server, error) {
 	rootStruct, err := model.NewConfigStruct(config)
@@ -31,5 +35,16 @@ func NewServer(model *Model, config []byte, callback ConfigCallback) (*Server, e
 			return nil, err
 		}
 	}
+	// Initialize readOnlyUpdateValue variable
+
+	val := &pb.TypedValue{
+		Value: &pb.TypedValue_StringVal{
+			StringVal: "INIT_STATE",
+		},
+	}
+	s.readOnlyUpdateValue = &pb.Update{Path: nil, Val: val}
+	s.subscribers = make(map[string]*streamClient)
+	s.ConfigUpdate = make(chan *pb.Update, 100)
+
 	return s, nil
 }

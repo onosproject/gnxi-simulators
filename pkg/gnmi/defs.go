@@ -17,6 +17,7 @@ package gnmi
 
 import (
 	"sync"
+	"time"
 
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/ygot/ygot"
@@ -48,9 +49,24 @@ var (
 //		// Do something ...
 // }
 type Server struct {
-	model    *Model
-	callback ConfigCallback
+	model               *Model
+	callback            ConfigCallback
+	config              ygot.ValidatedGoStruct
+	ConfigUpdate        chan *pb.Update
+	mu                  sync.RWMutex // mu is the RW lock to protect the access to config
+	readOnlyUpdateValue *pb.Update
+	subscribers         map[string]*streamClient
+}
 
-	config ygot.ValidatedGoStruct
-	mu     sync.RWMutex // mu is the RW lock to protect the access to config
+var (
+	readOnlyPath        = `elem:<name:"system" > elem:<name:"openflow" > elem:<name:"controllers" > elem:<name:"controller" key:<key:"name" value:"main" > > elem:<name:"connections" > elem:<name:"connection" key:<key:"aux-id" value:"0" > > elem:<name:"state" > elem:<name:"address" > `
+	randomEventInterval = time.Duration(5) * time.Second
+)
+
+type streamClient struct {
+	target     string
+	sr         *pb.SubscribeRequest
+	stream     pb.GNMI_SubscribeServer
+	errChan    chan error
+	UpdateChan chan *pb.Update
 }

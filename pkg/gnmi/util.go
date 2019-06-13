@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package gnmi implements a gnmi server to mock a device with YANG models.
 package gnmi
 
 import (
@@ -20,18 +21,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"reflect"
 	"strconv"
+	"time"
 
 	log "github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/onosproject/simulators/pkg/dispatcher"
+	"github.com/onosproject/simulators/pkg/events"
 	"github.com/openconfig/goyang/pkg/yang"
+	"github.com/openconfig/ygot/experimental/ygotutils"
 	"github.com/openconfig/ygot/ygot"
+	cpb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/openconfig/gnmi/proto/gnmi"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/openconfig/gnmi/value"
 )
 
 // getGNMIServiceVersion returns a pointer to the gNMI service version string.
@@ -323,4 +332,274 @@ func setPathWithoutAttribute(op pb.UpdateResult_Operation, curNode map[string]in
 		targetAsTree[k] = v
 	}
 	return nil
+}
+
+// sendResponse sends an SubscribeResponse to a gNMI client.
+func (s *Server) sendResponse(response *pb.SubscribeResponse, stream pb.GNMI_SubscribeServer) {
+	log.Info("Sending SubscribeResponse out to gNMI client: ", response)
+	err := stream.Send(response)
+	if err != nil {
+		//TODO remove channel registrations
+		log.Errorf("Error in sending response to client %v", err)
+	}
+}
+
+// getUpdate finds the node in the tree, build the update message and return it back to the collector
+func (s *Server) getUpdate(c *streamClient, subList *pb.SubscriptionList, path *pb.Path) (*pb.Update, error) {
+
+	fullPath := path
+	prefix := subList.GetPrefix()
+	if prefix != nil {
+		fullPath = gnmiFullPath(prefix, path)
+	}
+	if fullPath.GetElem() == nil && fullPath.GetElement() != nil {
+		return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
+	}
+	node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, fullPath)
+	if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {
+		return nil, status.Errorf(codes.NotFound, "path %v not found", fullPath)
+
+	}
+
+	nodeStruct, ok := node.(ygot.GoStruct)
+	// Return leaf node.
+	if !ok {
+		var val *pb.TypedValue
+		switch kind := reflect.ValueOf(node).Kind(); kind {
+		case reflect.Ptr, reflect.Interface:
+			var err error
+			val, err = value.FromScalar(reflect.ValueOf(node).Elem().Interface())
+			if err != nil {
+				msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
+				log.Error(msg)
+				return nil, status.Error(codes.Internal, msg)
+			}
+		case reflect.Int64:
+			enumMap, ok := s.model.enumData[reflect.TypeOf(node).Name()]
+			if !ok {
+				return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+
+			}
+			val = &pb.TypedValue{
+				Value: &pb.TypedValue_StringVal{
+					StringVal: enumMap[reflect.ValueOf(node).Int()].Name,
+				},
+			}
+		default:
+			return nil, status.Errorf(codes.Internal, "unexpected kind of leaf node type: %v %v", node, kind)
+		}
+
+		update := &pb.Update{Path: path, Val: val}
+		return update, nil
+
+	}
+
+	// Return IETF JSON for the sub-tree.
+	jsonTree, err := ygot.ConstructIETFJSON(nodeStruct, &ygot.RFC7951JSONConfig{AppendModuleName: true})
+	if err != nil {
+		msg := fmt.Sprintf("error in constructing IETF JSON tree from requested node: %v", err)
+		log.Error(msg)
+		return nil, status.Error(codes.Internal, msg)
+	}
+	jsonDump, err := json.Marshal(jsonTree)
+	if err != nil {
+		msg := fmt.Sprintf("error in marshaling IETF JSON tree to bytes: %v", err)
+		log.Error(msg)
+		return nil, status.Error(codes.Internal, msg)
+	}
+	update := &pb.Update{
+		Path: path,
+		Val: &pb.TypedValue{
+			Value: &pb.TypedValue_JsonIetfVal{
+				JsonIetfVal: jsonDump,
+			},
+		},
+	}
+
+	return update, nil
+
+}
+
+// collector collects the latest update from the config.
+func (s *Server) collector(c *streamClient, request *pb.SubscriptionList) {
+	for _, sub := range request.Subscription {
+		path := sub.GetPath()
+		update, err := s.getUpdate(c, request, path)
+
+		if err != nil {
+			log.Info("Error while collecting data for subscribe once or poll", err)
+			update = &pb.Update{
+				Path: path,
+			}
+			c.UpdateChan <- update
+		}
+
+		if err == nil {
+			c.UpdateChan <- update
+		}
+	}
+}
+
+// randomEventProducer produces update events for stream subscribers.
+func (s *Server) randomEventProducer(c *streamClient, dispatcher *dispatcher.Dispatcher,
+	request *gnmi.SubscriptionList) {
+	for {
+		for _, sub := range request.Subscription {
+
+			ipPrefix := "192.168.1"
+			ipSuffix := strconv.Itoa(rand.Intn(254))
+			ip := ipPrefix + "." + ipSuffix
+			subject := "subscribe_stream_randm_event"
+			val := &pb.TypedValue{
+				Value: &pb.TypedValue_StringVal{
+					StringVal: ip,
+				},
+			}
+			update, _ := s.getUpdate(c, request, sub.GetPath())
+			update.Val = val
+
+			event := &events.RandomEvent{
+				Subject: subject,
+				Time:    time.Now(),
+				Etype:   events.EventTypeRandom,
+				Values:  update,
+			}
+			dispatcher.Dispatch(event)
+			time.Sleep(randomEventInterval)
+		}
+
+	}
+}
+
+// sendRandomEvent stream random events to the subscribed clients.
+// This function is just for testing purposes and is not part of the
+// gnmi specification.
+func (s *Server) sendRandomEvent(c *streamClient, request *gnmi.SubscriptionList) {
+	dispatcher := dispatcher.NewDispatcher()
+	ok := dispatcher.RegisterEvent((*events.RandomEvent)(nil))
+
+	if !ok {
+		log.Error("Cannot register an event")
+	}
+
+	ch := make(chan events.RandomEvent, 100)
+	ok = dispatcher.RegisterListener(ch)
+
+	if !ok {
+		log.Error("Cannot register the listener")
+	}
+	go s.randomEventProducer(c, dispatcher, request)
+	for result := range ch {
+
+		var update *pb.Update
+		update = result.GetValues().(*pb.Update)
+
+		response, _ := buildSubResponse(update)
+		// Update the readOnlyUpdateValue variable to be accessible with get function
+		s.readOnlyUpdateValue = update
+
+		s.sendResponse(response, c.stream)
+		responseSync := &pb.SubscribeResponse_SyncResponse{
+			SyncResponse: true,
+		}
+		response = &pb.SubscribeResponse{
+			Response: responseSync,
+		}
+
+		s.sendResponse(response, c.stream)
+
+	}
+}
+
+// listenForUpdates reads update messages from the update channel, creates a
+// subscribe response and send it to the gnmi client.
+func (s *Server) listenForUpdates(c *streamClient) {
+	for update := range c.UpdateChan {
+		if update.Val == nil {
+			deleteResponse := buildDeleteResponse(update.GetPath())
+			s.sendResponse(deleteResponse, c.stream)
+			syncResponse := buildSyncResponse()
+			s.sendResponse(syncResponse, c.stream)
+
+		} else {
+			response, _ := buildSubResponse(update)
+			s.sendResponse(response, c.stream)
+			syncResponse := buildSyncResponse()
+			s.sendResponse(syncResponse, c.stream)
+		}
+	}
+}
+
+// configEventProducer produces update events for stream subscribers.
+func (s *Server) listenToConfigEvents(request *pb.SubscriptionList) {
+	for update := range s.ConfigUpdate {
+		for key, c := range s.subscribers {
+			if key == update.GetPath().String() {
+				newUpdateValue, err := s.getUpdate(c, request, update.GetPath())
+
+				if err != nil {
+					deleteResponse := buildDeleteResponse(update.GetPath())
+					s.sendResponse(deleteResponse, c.stream)
+					syncResponse := buildSyncResponse()
+					s.sendResponse(syncResponse, c.stream)
+
+				} else {
+					update.Val = newUpdateValue.Val
+
+					// builds subscription response
+					response, _ := buildSubResponse(update)
+
+					s.sendResponse(response, c.stream)
+					// builds Sync response
+					syncResponse := buildSyncResponse()
+					s.sendResponse(syncResponse, c.stream)
+				}
+			}
+		}
+	}
+
+}
+
+// buildSubResponse builds a subscribeResponse based on the given Update message.
+func buildSubResponse(update *pb.Update) (*pb.SubscribeResponse, error) {
+	updateArray := make([]*pb.Update, 0)
+	updateArray = append(updateArray, update)
+	notification := &pb.Notification{
+		Timestamp: time.Now().Unix(),
+		Update:    updateArray,
+	}
+	responseUpdate := &pb.SubscribeResponse_Update{
+		Update: notification,
+	}
+	response := &pb.SubscribeResponse{
+		Response: responseUpdate,
+	}
+
+	return response, nil
+}
+
+// buildDeleteResponse builds a subscribe response for the given deleted path.
+func buildDeleteResponse(delete *pb.Path) *gnmi.SubscribeResponse {
+	deleteArray := []*gnmi.Path{delete}
+	notification := &gnmi.Notification{
+		Timestamp: time.Now().Unix(),
+		Delete:    deleteArray,
+	}
+	responseUpdate := &gnmi.SubscribeResponse_Update{
+		Update: notification,
+	}
+	response := &gnmi.SubscribeResponse{
+		Response: responseUpdate,
+	}
+	return response
+}
+
+// buildSyncResponse builds a sync response.
+func buildSyncResponse() *gnmi.SubscribeResponse {
+	responseSync := &gnmi.SubscribeResponse_SyncResponse{
+		SyncResponse: true,
+	}
+	return &gnmi.SubscribeResponse{
+		Response: responseSync,
+	}
 }

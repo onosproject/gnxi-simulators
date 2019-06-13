@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package gnmi implements a gnmi server to mock a device with YANG models.
 package gnmi
 
 import (

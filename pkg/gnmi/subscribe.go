@@ -16,12 +16,77 @@
 package gnmi
 
 import (
+	"io"
+	"strings"
+
+	"github.com/openconfig/gnmi/proto/gnmi"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-// Subscribe method is not implemented.
+// processSubscribeOnce processes subscribe once requests
+func (s *Server) processSubscribeOnce(c *streamClient, request *pb.SubscriptionList) {
+	go s.collector(c, request)
+	s.listenForUpdates(c)
+
+}
+
+// processSubscribePoll processes subcribe poll requests
+func (s *Server) processSubscribePoll(c *streamClient, request *pb.SubscriptionList) {
+	go s.collector(c, request)
+	s.listenForUpdates(c)
+}
+
+// processSubscribeStream processes subscribe stream requests.
+func (s *Server) processSubscribeStream(c *streamClient, request *pb.SubscriptionList) {
+	go s.listenToConfigEvents(request)
+}
+
+// Subscribe handle subscribe requests including POLL, STREAM, ONCE subscribe requests
 func (s *Server) Subscribe(stream pb.GNMI_SubscribeServer) error {
-	return status.Error(codes.Unimplemented, "Subscribe is not implemented.")
+
+	c := streamClient{stream: stream}
+	var err error
+	c.UpdateChan = make(chan *pb.Update, 100)
+
+	var subscribe *pb.SubscriptionList
+	var mode gnmi.SubscriptionList_Mode
+
+	for {
+		c.sr, err = stream.Recv()
+
+		switch {
+		case err == io.EOF:
+			return nil
+		case err != nil:
+			return err
+		}
+
+		if c.sr.GetPoll() != nil {
+			mode = gnmi.SubscriptionList_POLL
+		} else {
+			subscribe = c.sr.GetSubscribe()
+			mode = subscribe.Mode
+		}
+
+		switch mode {
+		case pb.SubscriptionList_ONCE:
+			go s.processSubscribeOnce(&c, subscribe)
+		case pb.SubscriptionList_POLL:
+			go s.processSubscribePoll(&c, subscribe)
+		case pb.SubscriptionList_STREAM:
+			for _, sub := range subscribe.Subscription {
+				if strings.Compare(sub.GetPath().String(), readOnlyPath) == 0 {
+					go s.sendRandomEvent(&c, subscribe)
+				}
+			}
+			// Adds streamClient to the list of subscribers
+			for _, sub := range subscribe.Subscription {
+				s.subscribers[sub.GetPath().String()] = &c
+			}
+			go s.processSubscribeStream(&c, subscribe)
+
+		default:
+		}
+	}
+
 }
