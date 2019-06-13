@@ -199,7 +199,7 @@ Suppose we want to update a "state"  type attribute periodically (every 5 second
 
 ```bash
 gnmi_cli -address localhost:10161 \
-    -proto "subscribe:<mode: 0, prefix:<>, subscription:<path: <elem: <name: 'system'>  elem: <name: 'openflow' > elem: <name: 'controllers'> elem: <name: 'controller'> elem: <name: 'connections'> elem: <name: 'connection'> elem: <name: 'state'> elem: <name: 'address'>   >>>" \
+    -proto "subscribe:<mode: 0, prefix:<>, subscription:<path: <elem:<name:'system' > elem:<name:'openflow' > elem:<name:'controllers' > elem:<name:'controller' key:<key:'name' value:'main' > > elem:<name:'connections' > elem:<name:'connection' key:<key:'aux-id' value:'0' > > elem:<name:'state' > elem:<name:'address' >   >>>" \
     -timeout 5s -alsologtostderr \
     -polling_interval 5s \
     -client_crt certs/client1.crt -client_key certs/client1.key -ca_crt certs/onfca.crt
