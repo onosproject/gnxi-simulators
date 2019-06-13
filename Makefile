@@ -5,14 +5,11 @@ export CGO_ENABLED=0
 ONOS_SIMULATORS_VERSION := latest
 ONOS_BUILD_VERSION := stable
 
-all: image
+all: build images
 
-image: # @HELP build simulators image
-	docker run -it -v `pwd`:/go/src/github.com/onosproject/simulators -w "/go/src/github.com/onosproject/simulators"  onosproject/golang-build:${ONOS_BUILD_VERSION} build -e GO111MODULE=on
-	docker build . -f Dockerfile \
-	--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
-	-t onosproject/device-simulator:${ONOS_SIMULATORS_VERSION}	
-
+images: # @HELP build simulators image
+images: simulators-docker
+	
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...
 
@@ -33,12 +30,17 @@ gofmt: # @HELP run the go format utility against code in the pkg and cmd directo
 build: test
 	export GOOS=linux
 	export GOARCH=amd64
+	export GO111MODULE=on
 	go build -o build/_output/gnmi_target ./cmd/gnmi_target
 
 test: deps vet license_check gofmt lint
 	go test github.com/onosproject/simulators/pkg/...
 	go test github.com/onosproject/simulators/cmd/...
 
+simulators-docker:
+	docker build . -f Dockerfile \
+	--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
+	-t onosproject/device-simulator:${ONOS_SIMULATORS_VERSION}
 
 clean: # @HELP remove all the build artifacts
 	rm -rf ./build/_output
