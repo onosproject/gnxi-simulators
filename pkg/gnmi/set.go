@@ -232,9 +232,18 @@ func (s *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse, 
 		log.Error(msg)
 		return nil, status.Error(codes.Internal, msg)
 	}
+
 	s.config = rootStruct
-	return &pb.SetResponse{
+	setResponse := &pb.SetResponse{
 		Prefix:   req.GetPrefix(),
 		Response: results,
-	}, nil
+	}
+
+	for _, response := range setResponse.GetResponse() {
+		update := &pb.Update{
+			Path: response.GetPath(),
+		}
+		s.ConfigUpdate <- update
+	}
+	return setResponse, nil
 }

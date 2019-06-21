@@ -26,6 +26,7 @@ func (ce *ConfigEvent) Clone() Event {
 	clone.Subject = ce.Subject
 	clone.Time = ce.Time
 	clone.Values = ce.Values
+	clone.Client = ce.Client
 	return clone
 }
 
@@ -47,4 +48,9 @@ func (ce *ConfigEvent) GetValues() interface{} {
 // GetSubject returns the subject of the event
 func (ce *ConfigEvent) GetSubject() string {
 	return ce.Subject
+}
+
+// GetClient returns the stream client corresponding to the given ConfigEvent
+func (ce *ConfigEvent) GetClient() interface{} {
+	return ce.Client
 }

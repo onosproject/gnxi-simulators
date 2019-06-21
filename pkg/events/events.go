@@ -49,6 +49,7 @@ type EventHappend struct {
 	Time    time.Time
 	Etype   EventType
 	Values  interface{}
+	Client  interface{}
 }
 
 // Clone clones the Event
