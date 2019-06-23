@@ -59,14 +59,16 @@ type Server struct {
 }
 
 var (
-	readOnlyPath        = `elem:<name:"system" > elem:<name:"openflow" > elem:<name:"controllers" > elem:<name:"controller" key:<key:"name" value:"main" > > elem:<name:"connections" > elem:<name:"connection" key:<key:"aux-id" value:"0" > > elem:<name:"state" > elem:<name:"address" > `
-	randomEventInterval = time.Duration(5) * time.Second
+	readOnlyPath                = `elem:<name:"system" > elem:<name:"openflow" > elem:<name:"controllers" > elem:<name:"controller" key:<key:"name" value:"main" > > elem:<name:"connections" > elem:<name:"connection" key:<key:"aux-id" value:"0" > > elem:<name:"state" > elem:<name:"address" > `
+	randomEventInterval         = time.Duration(5) * time.Second
+	lowestSampleInterval uint64 = 5000000000 // 5000000000 nanoseconds
 )
 
 type streamClient struct {
-	target     string
-	sr         *pb.SubscribeRequest
-	stream     pb.GNMI_SubscribeServer
-	errChan    chan error
-	UpdateChan chan *pb.Update
+	target         string
+	sr             *pb.SubscribeRequest
+	stream         pb.GNMI_SubscribeServer
+	errChan        chan error
+	UpdateChan     chan *pb.Update
+	sampleInterval uint64
 }

@@ -1,6 +1,12 @@
-# gNOI Client Simulator User Manual
+**Table of Content**
+- [1. How to test the gNOI simulator?](#1-How-to-test-the-gNOI-simulator)
+  - [1.1. How to install gNOI_cert on your machine?](#11-How-to-install-gNOIcert-on-your-machine)
+- [2. Troubleshooting](#2-Troubleshooting)
+  - [2.1. Connection Refused](#21-Connection-Refused)
+  - [2.2. TCP diagnosis](#22-TCP-diagnosis)
+  - [2.3. HTTP Diagnosis](#23-HTTP-Diagnosis)
 
-## How to test the gNOI simulator? 
+# 1. How to test the gNOI simulator? 
 1. First you should  ssh into any of the targets using the following command:
 ```bash
 sudo docker exec -it <Container_ID> /bin/bash
@@ -49,16 +55,16 @@ and the the server should report a success message:
 devicesim1_1  | I0429 15:45:00.909347      10 server.go:292] Success GetCertificates.
 ```
 
-### How to install gNOI_cert on your machine? 
+## 1.1. How to install gNOI_cert on your machine? 
 To install **gnoi_cert** on your own machine, you can use the following command: 
 ```bash
 go get -u github.com/google/gnxi/gnoi_cert
 go install -v github.com/google/gnxi/gnoi_cert
 ```
 
-## Troubleshooting
+# 2. Troubleshooting
 
-### Connection Refused
+## 2.1. Connection Refused
 If you get an error like
 ```bash
 F0501 15:32:50.313449      30 gnoi_cert.go:220] Failed GetCertificates:rpc error: code = Unavailable desc = all SubConns are in TransientFailure, latest connection error: connection error: desc = "transport: Error while dialing dial tcp 127.0.0.1:50001: connect: connection refused"
@@ -66,7 +72,7 @@ F0501 15:32:50.313449      30 gnoi_cert.go:220] Failed GetCertificates:rpc error
 That means the gNOI target is not running or you are provding wrong ip:port information to the gnoi_cert command. 
 
 
-#### TCP diagnosis
+## 2.2. TCP diagnosis
 > This is not a concern with port mapping method using localhost and is for 
 > the Linux specific option only
 
@@ -81,7 +87,7 @@ Starting with TCP - see if you can ping the device
 For the last 2 cases make sure that the IP address that is resolved matches what
 was given at the startup of the simulator with docker.
 
-#### HTTP Diagnosis
+## 2.3. HTTP Diagnosis
 If TCP shows reachability then try with HTTPS - it's very important to remember
 that for HTTPS the address at which you access the server **must** match exactly
 the server name in the server key's Common Name (CN) like __localhost__ or

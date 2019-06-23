@@ -1,4 +1,17 @@
-# Device Simulator
+**Table of Contents**
+
+- [1. Device Simulator](#1-Device-Simulator)
+  - [1.1. Simulator mode](#11-Simulator-mode)
+  - [1.2. Run mode - localhost or network](#12-Run-mode---localhost-or-network)
+  - [1.3. docker-compose](#13-docker-compose)
+    - [1.3.1. Running on Linux](#131-Running-on-Linux)
+  - [1.4. Run a single docker container](#14-Run-a-single-docker-container)
+  - [1.5. Create the docker image](#15-Create-the-docker-image)
+- [2. Client tools for testing](#2-Client-tools-for-testing)
+  - [2.1. gNMI Client User Manual](#21-gNMI-Client-User-Manual)
+  - [2.2. gNOI Client User Manual](#22-gNOI-Client-User-Manual)
+  
+# 1. Device Simulator
 
 This is a docker VM that runs a gNMI and/or gNOI implementation 
 supporting openconfig models.
@@ -7,14 +20,14 @@ Inspired by https://github.com/faucetsdn/gnmi
 
 All commands below assume you are in the __devicesim__ directory
 
-## Simulator mode
+## 1.1. Simulator mode
 The device simulator can operate in three modes, controlled
 using **SIM_MODE** environment variable in the docker-compose file. 
 1) SIM_MODE=1 as gNMI target only. The configuration is loaded by default from [configs/target_configs/typical_ofsw_config.json](../configs/target_configs/typical_ofsw_config.json)
 2) SIM_MODE=2 as gNOI target only. It supports *Certificate management* that can be used for certificate installation and rotation. 
 3) SIM_MODE=3 both gNMI and gNOsI targets simultaneously
 
-## Run mode - localhost or network
+## 1.2. Run mode - localhost or network
 Additionally the simulator can be run in
 * localhost mode - use on Docker for Mac, Windows or Linux
 * dedicated network mode - for use on Linux only 
@@ -22,7 +35,7 @@ Additionally the simulator can be run in
 > Docker for Mac or Windows does not support accessing docker images
 > externally in dedicated network mode. Docker on Linux can run either.
 
-## docker-compose
+## 1.3. docker-compose
 Docker compose manages the running of several docker images at once.
 
 For example to run 3 **SIM_MODE=1** (gNMI only devices) and **localhost** mode, use: 
@@ -47,7 +60,7 @@ devicesim1_1  | gNMI running on localhost:10161
 > Use the -d mode with docker-compose to make it run as a daemon in the background
 
 
-### Running on Linux
+### 1.3.1. Running on Linux
 If you are fortunate enough to be using Docker on Linux, then you can use the
 above method __or__ using the command below to start in **SIM_MODE=1** and **network** mode:
 
@@ -72,7 +85,7 @@ device1-3. An entry must still be placed in your /etc/hosts file for all 3 like:
 > the cluster, so either the entries have to be placed in /etc/hosts or on some
 > DNS server
 
-## Run a single docker container
+## 1.4. Run a single docker container
 If you just want to run a single device, it is not necessary to run 
 docker-compose. It can be done just by docker directly, and can be 
 handy for troubleshooting. The following command shows how to run
@@ -84,18 +97,19 @@ docker run --env "HOSTNAME=localhost" --env "SIM_MODE=3" \
 ```
 To stop it use "docker kill"
 
-## Create the docker image
+## 1.5. Create the docker image
 By default the docker compose command will pull down the latest docker
 image from the Docker Hub. If you need to build it locally, run:
 ```bash
 docker build -t onosproject/device-simulator:stable -f Dockerfile .
 ```
 
-# Client tools for testing
+# 2. Client tools for testing
 You can access to the information about client tools for each SIM_MODE
 including troubleshooting tips using the following links: 
 
+## 2.1. gNMI Client User Manual
 [gNMI Client_User Manual](gnmi/gnmi_user_manual.md)
 
+## 2.2. gNOI Client User Manual
 [gNOI Client_User Manual](gnoi/gnoi_user_manual.md)
-
