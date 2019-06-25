@@ -344,6 +344,51 @@ func (s *Server) sendResponse(response *pb.SubscribeResponse, stream pb.GNMI_Sub
 	}
 }
 
+// getUpdateForPath finds a leaf node in the tree based on a given path, build the update message and return it back to the collector
+func (s *Server) getUpdateForPath(fullPath *pb.Path) (*pb.Update, error) {
+
+	node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, fullPath)
+	if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {
+		return nil, status.Errorf(codes.NotFound, "path %v not found", fullPath)
+	}
+
+	_, ok := node.(ygot.GoStruct)
+	// Return leaf node.
+	if !ok {
+		var val *pb.TypedValue
+		switch kind := reflect.ValueOf(node).Kind(); kind {
+		case reflect.Ptr, reflect.Interface:
+			var err error
+			val, err = value.FromScalar(reflect.ValueOf(node).Elem().Interface())
+			if err != nil {
+				msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", fullPath, err)
+				log.Error(msg)
+				return nil, status.Error(codes.Internal, msg)
+			}
+		case reflect.Int64:
+			enumMap, ok := s.model.enumData[reflect.TypeOf(node).Name()]
+			if !ok {
+				return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+
+			}
+			val = &pb.TypedValue{
+				Value: &pb.TypedValue_StringVal{
+					StringVal: enumMap[reflect.ValueOf(node).Int()].Name,
+				},
+			}
+		default:
+			return nil, status.Errorf(codes.Internal, "unexpected kind of leaf node type: %v %v", node, kind)
+		}
+
+		update := &pb.Update{Path: fullPath, Val: val}
+		return update, nil
+
+	}
+
+	return nil, nil
+
+}
+
 // getUpdate finds the node in the tree, build the update message and return it back to the collector
 func (s *Server) getUpdate(c *streamClient, subList *pb.SubscriptionList, path *pb.Path) (*pb.Update, error) {
 

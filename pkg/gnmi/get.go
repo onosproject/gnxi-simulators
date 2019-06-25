@@ -23,6 +23,7 @@ import (
 	"time"
 
 	log "github.com/golang/glog"
+	"github.com/onosproject/simulators/pkg/utils"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/gnmi/value"
 	"github.com/openconfig/ygot/experimental/ygotutils"
@@ -36,9 +37,8 @@ import (
 // Get implements the Get RPC in gNMI spec.
 func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
 
-	if req.GetType() != pb.GetRequest_ALL {
-		return nil, status.Errorf(codes.Unimplemented, "unsupported request type: %s", pb.GetRequest_DataType_name[int32(req.GetType())])
-	}
+	dataType := req.GetType()
+
 	if err := s.checkEncodingAndModel(req.GetEncoding(), req.GetUseModels()); err != nil {
 		return nil, status.Error(codes.Unimplemented, err.Error())
 	}
@@ -46,6 +46,26 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 	prefix := req.GetPrefix()
 	paths := req.GetPath()
 	notifications := make([]*pb.Notification, len(paths))
+
+	// THIS PART IS JUST FOR TESTING PURPOSES OF ONOS-CONFIG OPERATIONAL STATE AND WILL BE REMOVED SOON.
+	if paths == nil && dataType.String() != "" {
+		if dataType == pb.GetRequest_STATE {
+
+			notifications := make([]*pb.Notification, 1)
+			testPath, _ := utils.ToGNMIPath("/system/openflow/controllers/controller[name=main]/connections/connection[aux-id=0]/state/address")
+			update, _ := s.getUpdateForPath(testPath)
+			ts := time.Now().UnixNano()
+			notifications[0] = &pb.Notification{
+				Timestamp: ts,
+				Prefix:    prefix,
+				Update:    []*pb.Update{update},
+			}
+			resp := &pb.GetResponse{Notification: notifications}
+
+			return resp, nil
+		}
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -56,6 +76,7 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		if prefix != nil {
 			fullPath = gnmiFullPath(prefix, path)
 		}
+
 		if fullPath.GetElem() == nil && fullPath.GetElement() != nil {
 			return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 		}
@@ -87,8 +108,25 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		ts = time.Now().UnixNano()
 
 		nodeStruct, ok := node.(ygot.GoStruct)
+		dataTypeFlag := false
 		// Return leaf node.
 		if !ok {
+			elements := fullPath.GetElem()
+			dataTypeString := strings.ToLower(dataType.String())
+			if strings.Compare(dataTypeString, "all") == 0 {
+				dataTypeFlag = true
+			} else {
+				for _, elem := range elements {
+					if strings.Compare(dataTypeString, elem.GetName()) == 0 {
+						dataTypeFlag = true
+						break
+					}
+
+				}
+			}
+			if dataTypeFlag == false {
+				return nil, status.Error(codes.Internal, "The requested dataType is not valid")
+			}
 			var val *pb.TypedValue
 			switch kind := reflect.ValueOf(node).Kind(); kind {
 			case reflect.Ptr, reflect.Interface:
