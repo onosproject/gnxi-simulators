@@ -23,7 +23,6 @@ import (
 	"time"
 
 	log "github.com/golang/glog"
-	"github.com/onosproject/simulators/pkg/utils"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/gnmi/value"
 	"github.com/openconfig/ygot/experimental/ygotutils"
@@ -47,28 +46,45 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 	paths := req.GetPath()
 	notifications := make([]*pb.Notification, len(paths))
 
-	// THIS PART IS JUST FOR TESTING PURPOSES OF ONOS-CONFIG OPERATIONAL STATE AND WILL BE REMOVED SOON.
-	if paths == nil && dataType.String() != "" {
-		if dataType == pb.GetRequest_STATE {
-
-			notifications := make([]*pb.Notification, 1)
-			testPath, _ := utils.ToGNMIPath("/system/openflow/controllers/controller[name=main]/connections/connection[aux-id=0]/state/address")
-			update, _ := s.getUpdateForPath(testPath)
-			ts := time.Now().UnixNano()
-			notifications[0] = &pb.Notification{
-				Timestamp: ts,
-				Prefix:    prefix,
-				Update:    []*pb.Update{update},
-			}
-			resp := &pb.GetResponse{Notification: notifications}
-
-			return resp, nil
-		}
-	}
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if paths == nil && dataType.String() != "" {
+
+		jsonType := "IETF"
+		if req.GetEncoding() == pb.Encoding_JSON {
+			jsonType = "Internal"
+		}
+		notifications := make([]*pb.Notification, 1)
+		path := pb.Path{}
+		// Gets the whole config data tree
+		node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, &path)
+		if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {
+			return nil, status.Errorf(codes.NotFound, "path %v not found", path)
+		}
+
+		nodeStruct, _ := node.(ygot.GoStruct)
+		jsonTree, _ := ygot.ConstructIETFJSON(nodeStruct, &ygot.RFC7951JSONConfig{AppendModuleName: true})
+
+		jsonTree = pruneConfigData(jsonTree, strings.ToLower(dataType.String()), &path).(map[string]interface{})
+		jsonDump, err := json.Marshal(jsonTree)
+
+		if err != nil {
+			msg := fmt.Sprintf("error in marshaling %s JSON tree to bytes: %v", jsonType, err)
+			log.Error(msg)
+			return nil, status.Error(codes.Internal, msg)
+		}
+		ts := time.Now().UnixNano()
+
+		update := buildUpdate(jsonDump, &path, jsonType)
+		notifications[0] = &pb.Notification{
+			Timestamp: ts,
+			Prefix:    prefix,
+			Update:    []*pb.Update{update},
+		}
+		resp := &pb.GetResponse{Notification: notifications}
+		return resp, nil
+	}
 
 	for i, path := range paths {
 		// Get schema node for path from config struct.
@@ -159,31 +175,22 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 			}
 			continue
 		}
+		dataTypeString := strings.ToLower(dataType.String())
 
 		if req.GetUseModels() != nil {
 			return nil, status.Errorf(codes.Unimplemented, "filtering Get using use_models is unsupported, got: %v", req.GetUseModels())
 		}
 
-		// Return IETF JSON by default.
-		jsonEncoder := func() (map[string]interface{}, error) {
-			return ygot.ConstructIETFJSON(nodeStruct, &ygot.RFC7951JSONConfig{AppendModuleName: true})
-		}
 		jsonType := "IETF"
-		buildUpdate := func(b []byte) *pb.Update {
-			return &pb.Update{Path: path, Val: &pb.TypedValue{Value: &pb.TypedValue_JsonIetfVal{JsonIetfVal: b}}}
-		}
 
 		if req.GetEncoding() == pb.Encoding_JSON {
-			jsonEncoder = func() (map[string]interface{}, error) {
-				return ygot.ConstructInternalJSON(nodeStruct)
-			}
 			jsonType = "Internal"
-			buildUpdate = func(b []byte) *pb.Update {
-				return &pb.Update{Path: path, Val: &pb.TypedValue{Value: &pb.TypedValue_JsonVal{JsonVal: b}}}
-			}
 		}
 
-		jsonTree, err := jsonEncoder()
+		var jsonTree map[string]interface{}
+		var err error
+		jsonTree, err = jsonEncoder(jsonType, nodeStruct)
+		jsonTree = pruneConfigData(jsonTree, strings.ToLower(dataTypeString), fullPath).(map[string]interface{})
 		if err != nil {
 			msg := fmt.Sprintf("error in constructing %s JSON tree from requested node: %v", jsonType, err)
 			log.Error(msg)
@@ -197,7 +204,7 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 			return nil, status.Error(codes.Internal, msg)
 		}
 
-		update := buildUpdate(jsonDump)
+		update := buildUpdate(jsonDump, path, jsonType)
 		notifications[i] = &pb.Notification{
 			Timestamp: ts,
 			Prefix:    prefix,

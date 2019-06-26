@@ -23,7 +23,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"reflect"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	log "github.com/golang/glog"
@@ -647,4 +649,116 @@ func buildSyncResponse() *gnmi.SubscribeResponse {
 	return &gnmi.SubscribeResponse{
 		Response: responseSync,
 	}
+}
+
+// Contains checks the existance of a given string in an array of strings.
+func Contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
+
+// checkPathContainType checks if the path contains the data type element
+func checkPathContainType(fullPath *pb.Path, dataTypeString string) bool {
+	elements := fullPath.GetElem()
+	var dataTypeFlag bool
+	dataTypeFlag = false
+	if strings.Compare(dataTypeString, "all") == 0 {
+		dataTypeFlag = true
+		return dataTypeFlag
+	}
+	for _, elem := range elements {
+		if strings.Compare(dataTypeString, elem.GetName()) == 0 {
+			dataTypeFlag = true
+			break
+		}
+	}
+	return dataTypeFlag
+}
+
+// pruneConfigData prunes the given JSON subtree based on the given data type and path info.
+func pruneConfigData(data interface{}, dataType string, fullPath *pb.Path) interface{} {
+
+	if reflect.ValueOf(data).Kind() == reflect.Slice {
+		d := reflect.ValueOf(data)
+		tmpData := make([]interface{}, d.Len())
+		returnSlice := make([]interface{}, d.Len())
+		for i := 0; i < d.Len(); i++ {
+			tmpData[i] = d.Index(i).Interface()
+		}
+		for i, v := range tmpData {
+			returnSlice[i] = pruneConfigData(v, dataType, fullPath)
+		}
+		return returnSlice
+	} else if reflect.ValueOf(data).Kind() == reflect.Map {
+		d := reflect.ValueOf(data)
+		tmpData := make(map[string]interface{})
+		for _, k := range d.MapKeys() {
+			match, _ := regexp.MatchString(dataType, k.String())
+			matchAll := strings.Compare(dataType, "all")
+			typeOfValue := reflect.TypeOf(d.MapIndex(k).Interface()).Kind()
+
+			if match || matchAll == 0 {
+				newKey := k.String()
+				if typeOfValue == reflect.Map || typeOfValue == reflect.Slice {
+					tmpData[newKey] = pruneConfigData(d.MapIndex(k).Interface(), dataType, fullPath)
+
+				} else {
+					tmpData[newKey] = d.MapIndex(k).Interface()
+				}
+			} else {
+				tmpIteration := pruneConfigData(d.MapIndex(k).Interface(), dataType, fullPath)
+				if typeOfValue == reflect.Map {
+					tmpMap := tmpIteration.(map[string]interface{})
+					if len(tmpMap) != 0 {
+						tmpData[k.String()] = tmpIteration
+						if Contains(dataTypes, k.String()) {
+							delete(tmpData, k.String())
+						}
+					}
+				} else if typeOfValue == reflect.Slice {
+					tmpMap := tmpIteration.([]interface{})
+					if len(tmpMap) != 0 {
+						tmpData[k.String()] = tmpIteration
+						if Contains(dataTypes, k.String()) {
+							delete(tmpData, k.String())
+
+						}
+					}
+				} else {
+					tmpData[k.String()] = d.MapIndex(k).Interface()
+
+				}
+			}
+
+		}
+
+		return tmpData
+	}
+	return data
+}
+
+func buildUpdate(b []byte, path *pb.Path, valType string) *pb.Update {
+	var update *pb.Update
+
+	if strings.Compare(valType, "Internal") == 0 {
+		update = &pb.Update{Path: path, Val: &pb.TypedValue{Value: &pb.TypedValue_JsonVal{JsonVal: b}}}
+		return update
+	}
+	update = &pb.Update{Path: path, Val: &pb.TypedValue{Value: &pb.TypedValue_JsonIetfVal{JsonIetfVal: b}}}
+
+	return update
+}
+
+func jsonEncoder(encoderType string, nodeStruct ygot.GoStruct) (map[string]interface{}, error) {
+
+	if strings.Compare(encoderType, "Internal") == 0 {
+		return ygot.ConstructInternalJSON(nodeStruct)
+	}
+
+	return ygot.ConstructIETFJSON(nodeStruct, &ygot.RFC7951JSONConfig{AppendModuleName: true})
+
 }
