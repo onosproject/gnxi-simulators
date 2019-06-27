@@ -29,6 +29,7 @@ type ConfigCallback func(ygot.ValidatedGoStruct) error
 var (
 	pbRootPath         = &pb.Path{}
 	supportedEncodings = []pb.Encoding{pb.Encoding_JSON, pb.Encoding_JSON_IETF}
+	dataTypes          = []string{"config", "state", "operational", "all"}
 )
 
 // Server struct maintains the data structure for device config and implements the interface of gnmi server. It supports Capabilities, Get, and Set APIs.
