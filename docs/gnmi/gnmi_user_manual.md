@@ -1,6 +1,25 @@
-# gNMI Client Simulator User Manual
+**Table of Contents**
+- [1. Introduction](#1-Introduction)
+- [2. How to Install gNMI Command Line Interface (CLI) ?](#2-How-to-Install-gNMI-Command-Line-Interface-CLI)
+- [3. Get the capabilities](#3-Get-the-capabilities)
+- [4. Run the Get Command](#4-Run-the-Get-Command)
+- [5. Run the Set command](#5-Run-the-Set-command)
+- [6. Run the Subscribe command](#6-Run-the-Subscribe-command)
+  - [6.1. Subscribe ONCE](#61-Subscribe-ONCE)
+  - [6.2. Subscribe POLL](#62-Subscribe-POLL)
+  - [6.3. Subscribe Stream](#63-Subscribe-Stream)
+    - [6.3.1. ON\_CHANGE](#631-ONCHANGE)
+    - [6.3.2. SAMPLE](#632-SAMPLE)
+    - [6.3.3. TARGET\_DEFINED](#633-TARGETDEFINED)
+  - [6.4. Generate and Stream Random Events for State Type Attributes (Just for **Testing** Purposes)](#64-Generate-and-Stream-Random-Events-for-State-Type-Attributes-Just-for-Testing-Purposes)
+- [7. Troubleshooting](#7-Troubleshooting)
+  - [7.1. Deadline exceeded](#71-Deadline-exceeded)
+  - [7.2. TCP diagnosis](#72-TCP-diagnosis)
+  - [7.3. HTTP Diagnosis](#73-HTTP-Diagnosis)
+# 1. Introduction
 
-## How to test the gNMI simulator? 
+
+# 2. How to Install gNMI Command Line Interface (CLI) ? 
 
 gNMI CLI is a general purpose client tool for testing gNMI devices, from
 the OpenConfig project.
@@ -17,7 +36,7 @@ the gNMI CLI from the Docker container.
 docker exec -it <Container ID> /bin/bash
 ```
 
-### Get the capabilities
+# 3. Get the capabilities
 ```bash
 gnmi_cli -address localhost:10161 \
        -capabilities \
@@ -33,7 +52,7 @@ E0416 15:23:08.099600   22997 gnmi_cli.go:180] could not create a gNMI client: D
 ```
 It indicates a transport problem - see the [troubleshooting](#deadline-exceeded) section below.
 
-## Run the Get Command
+# 4. Run the Get Command
 The following command retrieves the motd-banner.
 ```bash
 gnmi_cli -address localhost:10162 \
@@ -68,7 +87,7 @@ notification: <
 >
 ```
 
-## Run the Set command
+# 5. Run the Set command
 The following command updates the timezone-name.  
 ```bash
 gnmi_cli -address localhost:10161  \
@@ -102,8 +121,8 @@ response: <
 >
 ```
 
-## Run the Subscribe command
-### Subscribe ONCE
+# 6. Run the Subscribe command
+## 6.1. Subscribe ONCE
 ```bash
 gnmi_cli -address localhost:10161 \
        -proto "subscribe:<mode: 1, prefix:<>, subscription:<path: <elem: <name: 'openconfig-system:system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>>>>" \
@@ -123,7 +142,7 @@ This gives a response like this.
   }
 }
 ```
-### Subscribe POLL
+## 6.2. Subscribe POLL
 ```bash
 gnmi_cli -address localhost:10161 \
     -proto "subscribe:<mode: 2, prefix:<>, subscription:<path: <elem: <name: 'openconfig-system:system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>>>>" \
@@ -144,16 +163,16 @@ After running the above command the following output will be printed on the scre
 }
 ```
 
-### Subscribe Stream
+## 6.3. Subscribe Stream
 Stream subscriptions are long-lived subscriptions which continue to transmit updates relating to the set of paths that are covered within the subscription indefinitely. The current implementaiton of the simulator supports the following stream modes: 
 
-#### ON_CHANGE
+### 6.3.1. ON\_CHANGE
 When a subscription is defined to be "on change", data updates are only sent when the value of the data item changes. To test this mode, you should follow the following steps: 
 
 1. First you need to run the following command to subcribe for the events on a path:
 ```bash
 gnmi_cli -address localhost:10161 \
-    -proto "subscribe:<mode: 0, prefix:<>, subscription:<path: <elem: <name: 'openconfig-system:system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>>>>" \
+    -proto "subscribe:<mode: 0, prefix:<>, subscription:<mode:0, path: <elem: <name: 'openconfig-system:system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>>>>" \
     -timeout 5s -alsologtostderr \
     -polling_interval 5s \
     -client_crt certs/client1.crt -client_key certs/client1.key -ca_crt certs/onfca.crt
@@ -194,7 +213,43 @@ The output in the terminal which runs subscribe stream will be like this:
 }
 ```
 
-### Generate and Stream Random Events for State Type Attributes (Just for **Testing** Purposes)
+### 6.3.2. SAMPLE
+A subscription that is defined to be sampled MUST be specified along with a *sample_interval* encoded as an unsigned 64-bit integer representing nanoseconds between samples. The target sends The value of the data item(s) once per sample interval to the client. For example, we would like to subscribe to receive *timezone-name* value from the gnmi target every 5 seconds. To do that, we can use the following command:
+```bash
+gnmi_cli -address localhost:10161  \
+       "subscribe:<mode: 0, prefix:<>, subscription:<mode:2, sample_interval:5000000000 path: <elem: <name: 'system'>  elem: <name: 'clock' > elem: <name: 'config'> elem: <name: 'timezone-name'>>>>" \
+       -timeout 5s \
+       -alsologtostderr  \
+       -client_crt certs/client1.crt \
+       -client_key certs/client1.key \
+       -ca_crt certs/onfca.crt
+```
+Every 5 seconds, the following output will be printed on the screen:
+```bash
+{
+  "system": {
+    "clock": {
+      "config": {
+        "timezone-name": "Europe/Dublin"
+      }
+    }
+  }
+}
+```
+The following assumptions have been made based on gNMI specefication to implement
+the subscribe SAMPLE mode:
+
+1. If the client sets the *sample_interval* to 0, the target uses the 
+lowest sample interval (i.e. *lowestSampleInterval* variable) which is defined in target and has the default value of 5 seconds (i.e. 5000000000 nanoseconds). 
+
+2. If the client sets the *sample_interval* to a value lower than *lowestSampleInterval* then the target rejects the request and returns an *InvalidArgument (3)* error code.
+
+### 6.3.3. TARGET\_DEFINED
+In the current version of the gnmi simulator, we define TARGET_DEFINED mode to behave 
+always like ON_CHANGE mode. Accroding to the gNMI spec, the target MUST determine the best type of subscription to be created on a per-leaf basis. 
+
+
+## 6.4. Generate and Stream Random Events for State Type Attributes (Just for **Testing** Purposes)
 Suppose we want to update a "state"  type attribute periodically (every 5 seconds) which is defined in a predefined path and stream the changes on that attribute to the subscribers. This part is implemented  to test the operational data cache and subscription in the onos-config project. To test this feature the following command can be used which creates a subscription on  **/system/openflow/controllers/controller/connections/connection/state/address** path. 
 
 ```bash
@@ -273,9 +328,9 @@ The output will be like the following. As the results show, every 5 seconds the 
 
 ```
 
-## Troubleshooting
+# 7. Troubleshooting
 
-### Deadline exceeded
+## 7.1. Deadline exceeded
 If you get an error like
 ```bash
 E0416 15:23:08.099600   22997 gnmi_cli.go:180] could not create a gNMI client:
@@ -285,7 +340,7 @@ Dialer(localhost:10161, 5s): context deadline exceeded
 or anything about __deadline exceeded__, then it is **always** related to the
 transport mechanism above gNMI i.e. TCP or HTTPS
 
-#### TCP diagnosis
+## 7.2. TCP diagnosis
 > This is not a concern with port mapping method using localhost and is for 
 > the Linux specific option only
 
@@ -300,7 +355,7 @@ Starting with TCP - see if you can ping the device
 For the last 2 cases make sure that the IP address that is resolved matches what
 was given at the startup of the simulator with docker.
 
-#### HTTP Diagnosis
+## 7.3. HTTP Diagnosis
 If TCP shows reachability then try with HTTPS - it's very important to remember
 that for HTTPS the address at which you access the server **must** match exactly
 the server name in the server key's Common Name (CN) like __localhost__ or
