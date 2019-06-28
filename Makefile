@@ -1,4 +1,5 @@
 export CGO_ENABLED=0
+export GO111MODULE=on
 
 .PHONY: build
 
@@ -12,6 +13,8 @@ images: simulators-docker
 	
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...
+	bash -c "diff -u <(echo -n) <(git diff go.mod)"
+	bash -c "diff -u <(echo -n) <(git diff go.sum)"
 
 lint: # @HELP run the linters for Go source code
 	go list ./... | grep -v /gnmi/modeldat |  xargs -L1 golint -set_exit_status
@@ -28,9 +31,6 @@ gofmt: # @HELP run the go format utility against code in the pkg and cmd directo
 
 # @HELP build the go binary in the cmd/gnmi_target package
 build: test
-	export GOOS=linux
-	export GOARCH=amd64
-	export GO111MODULE=on
 	go build -o build/_output/gnmi_target ./cmd/gnmi_target
 
 test: deps vet license_check gofmt lint
