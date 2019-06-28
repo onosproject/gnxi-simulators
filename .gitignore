@@ -1,4 +1,5 @@
 cmd/gnmi_target/gnmi_target
+cmd/device_cli/device_cli
 cmd/dispatcher_main/dispatcher_main
 vendor
 build/_output

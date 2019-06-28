@@ -32,6 +32,7 @@ gofmt: # @HELP run the go format utility against code in the pkg and cmd directo
 # @HELP build the go binary in the cmd/gnmi_target package
 build: test
 	go build -o build/_output/gnmi_target ./cmd/gnmi_target
+	go build -o build/_output/gnmi_cli ./cmd/device_cli
 
 test: deps vet license_check gofmt lint
 	go test github.com/onosproject/simulators/pkg/...
