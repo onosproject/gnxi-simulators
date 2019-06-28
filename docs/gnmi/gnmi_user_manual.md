@@ -3,6 +3,10 @@
 - [2. How to Install gNMI Command Line Interface (CLI) ?](#2-How-to-Install-gNMI-Command-Line-Interface-CLI)
 - [3. Get the capabilities](#3-Get-the-capabilities)
 - [4. Run the Get Command](#4-Run-the-Get-Command)
+  - [4.1. Retrieve the motd-banner](#41-Retrieve-the-motd-banner)
+  - [4.2. Retrieve All CONFIG leaves under "/system"](#42-Retrieve-All-CONFIG-leaves-under-%22system%22)
+  - [4.3. Retrieve All STATE leaves under "/system"](#43-Retrieve-All-STATE-leaves-under-%22system%22)
+  - [4.4. Retrieve All Config values under the root](#44-Retrieve-All-Config-values-under-the-root)
 - [5. Run the Set command](#5-Run-the-Set-command)
 - [6. Run the Subscribe command](#6-Run-the-Subscribe-command)
   - [6.1. Subscribe ONCE](#61-Subscribe-ONCE)
@@ -53,6 +57,7 @@ E0416 15:23:08.099600   22997 gnmi_cli.go:180] could not create a gNMI client: D
 It indicates a transport problem - see the [troubleshooting](#deadline-exceeded) section below.
 
 # 4. Run the Get Command
+## 4.1. Retrieve the motd-banner
 The following command retrieves the motd-banner.
 ```bash
 gnmi_cli -address localhost:10162 \
@@ -82,6 +87,89 @@ notification: <
     >
     val: <
       string_val: "Welcome to gNMI service on localhost:10162"
+    >
+  >
+>
+```
+## 4.2. Retrieve All CONFIG leaves under "/system"
+```bash
+gnmi_cli -address localhost:10162 \
+       -get \
+       -proto  "type:1, path: <elem: <name: 'system'>>" \
+       -timeout 5s -alsologtostderr \
+       -client_crt certs/client1.crt \
+       -client_key certs/client1.key \
+       -ca_crt certs/onfca.crt
+```
+
+This gives a response like this:
+```bash
+notification: <
+  timestamp: 1561659731806153000
+  update: <
+    path: <
+      elem: <
+        name: "system"
+      >
+    >
+    val: <
+      json_val: "{\"aaa\":{\"authentication\":{\"admin-user\":{\"config\":{\"admin-password\":\"password\"}},\"config\":{\"authentication-method\":[\"LOCAL\"]}}},\"clock\":{\"config\":{\"timezone-name\":\"Europe/Dublin\"}},\"config\":{\"domain-name\":\"opennetworking.org\",\"hostname\":\"replace-device-name\",\"login-banner\":\"This device is for authorized use only\",\"motd-banner\":\"replace-motd-banner\"},\"openflow\":{\"agent\":{\"config\":{\"backoff-interval\":5,\"datapath-id\":\"00:16:3e:00:00:00:00:00\",\"failure-mode\":\"SECURE\",\"inactivity-probe\":10,\"max-backoff\":10}},\"controllers\":{\"controller\":{\"main\":{\"config\":{\"name\":\"main\"},\"connections\":{\"connection\":{\"0\":{\"aux-id\":0,\"config\":{\"address\":\"192.0.2.10\",\"aux-id\":0,\"port\":6633,\"priority\":1,\"source-interface\":\"admin\",\"transport\":\"TLS\"}},\"1\":{\"aux-id\":1,\"config\":{\"address\":\"192.0.2.11\",\"aux-id\":1,\"port\":6653,\"priority\":2,\"source-interface\":\"admin\",\"transport\":\"TLS\"}}}},\"name\":\"main\"},\"second\":{\"config\":{\"name\":\"second\"},\"connections\":{\"connection\":{\"0\":{\"aux-id\":0,\"config\":{\"address\":\"192.0.3.10\",\"aux-id\":0,\"port\":6633,\"priority\":1,\"source-interface\":\"admin\",\"transport\":\"TLS\"}},\"1\":{\"aux-id\":1,\"config\":{\"address\":\"192.0.3.11\",\"aux-id\":1,\"port\":6653,\"priority\":2,\"source-interface\":\"admin\",\"transport\":\"TLS\"}}}},\"name\":\"second\"}}}}}"
+    >
+  >
+>
+```
+
+## 4.3. Retrieve All STATE leaves under "/system"
+
+```bash
+gnmi_cli -address localhost:10162 \
+       -get \
+       -proto  "type:2, path: <elem: <name: 'system'>>" \
+       -timeout 5s -alsologtostderr \
+       -client_crt certs/client1.crt \
+       -client_key certs/client1.key \
+       -ca_crt certs/onfca.crt
+```
+
+```bash
+notification: <
+  timestamp: 1561659901045020000
+  update: <
+    path: <
+      elem: <
+        name: "system"
+      >
+    >
+    val: <
+      json_val: "{\"openflow\":{\"controllers\":{\"controller\":{\"main\":{\"connections\":{\"connection\":{\"0\":{\"aux-id\":0,\"state\":{\"address\":\"192.0.2.10\",\"aux-id\":0,\"port\":6633,\"priority\":1,\"source-interface\":\"admin\",\"transport\":\"TLS\"}},\"1\":{\"aux-id\":1,\"state\":{\"address\":\"192.0.2.11\",\"aux-id\":1,\"port\":6653,\"priority\":2,\"source-interface\":\"admin\",\"transport\":\"TLS\"}}}},\"name\":\"main\"},\"second\":{\"connections\":{\"connection\":{\"0\":{\"aux-id\":0,\"state\":{\"address\":\"192.0.3.10\",\"aux-id\":0,\"port\":6633,\"priority\":1,\"source-interface\":\"admin\",\"transport\":\"TLS\"}},\"1\":{\"aux-id\":1,\"state\":{\"address\":\"192.0.3.11\",\"aux-id\":1,\"port\":6653,\"priority\":2,\"source-interface\":\"admin\",\"transport\":\"TLS\"}}}},\"name\":\"second\"}}}}}"
+    >
+  >
+>
+```
+
+## 4.4. Retrieve All Config values under the root
+For this case, we assume that when that path is empty but the dataType is 
+specefied in the request, we return whole config data tree. 
+
+```bash
+gnmi_cli -address localhost:10162 \
+       -get \
+       -proto  "type:1" \
+       -timeout 5s -alsologtostderr \
+       -client_crt certs/client1.crt \
+       -client_key certs/client1.key \
+       -ca_crt certs/onfca.crt
+```
+
+This gives a response like this:
+```bash
+notification: <
+  timestamp: 1561660173314942000
+  update: <
+    path: <
+    >
+    val: <
+      json_val: "{\"openconfig-interfaces:interfaces\":{\"interface\":[{\"config\":{\"name\":\"admin\"},\"name\":\"admin\"}]},\"openconfig-system:system\":{\"aaa\":{\"authentication\":{\"admin-user\":{\"config\":{\"admin-password\":\"password\"}},\"config\":{\"authentication-method\":[\"openconfig-aaa-types:LOCAL\"]}}},\"clock\":{\"config\":{\"timezone-name\":\"Europe/Dublin\"}},\"config\":{\"domain-name\":\"opennetworking.org\",\"hostname\":\"replace-device-name\",\"login-banner\":\"This device is for authorized use only\",\"motd-banner\":\"replace-motd-banner\"},\"openconfig-openflow:openflow\":{\"agent\":{\"config\":{\"backoff-interval\":5,\"datapath-id\":\"00:16:3e:00:00:00:00:00\",\"failure-mode\":\"SECURE\",\"inactivity-probe\":10,\"max-backoff\":10}},\"controllers\":{\"controller\":[{\"config\":{\"name\":\"main\"},\"connections\":{\"connection\":[{\"aux-id\":0,\"config\":{\"address\":\"192.0.2.10\",\"aux-id\":0,\"port\":6633,\"priority\":1,\"source-interface\":\"admin\",\"transport\":\"TLS\"}},{\"aux-id\":1,\"config\":{\"address\":\"192.0.2.11\",\"aux-id\":1,\"port\":6653,\"priority\":2,\"source-interface\":\"admin\",\"transport\":\"TLS\"}}]},\"name\":\"main\"},{\"config\":{\"name\":\"second\"},\"connections\":{\"connection\":[{\"aux-id\":0,\"config\":{\"address\":\"192.0.3.10\",\"aux-id\":0,\"port\":6633,\"priority\":1,\"source-interface\":\"admin\",\"transport\":\"TLS\"}},{\"aux-id\":1,\"config\":{\"address\":\"192.0.3.11\",\"aux-id\":1,\"port\":6653,\"priority\":2,\"source-interface\":\"admin\",\"transport\":\"TLS\"}}]},\"name\":\"second\"}]}}}}"
     >
   >
 >
