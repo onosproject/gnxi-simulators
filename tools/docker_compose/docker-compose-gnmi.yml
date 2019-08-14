@@ -5,9 +5,11 @@ services:
     environment:
       - HOSTNAME=localhost
       - GNMI_PORT=10161
-      - SIM_MODE=1  
+      - GNMI_INSECURE_PORT=11161
+      - SIM_MODE=1
     ports:
       - "10161:10161"
+      - "11161:11161"
     labels:
       description: "gNMI Simulator Device 1"
   devicesim2:
@@ -15,9 +17,11 @@ services:
     environment:
       - HOSTNAME=localhost
       - GNMI_PORT=10162
+      - GNMI_INSECURE_PORT=11162
       - SIM_MODE=1
     ports:
       - "10162:10162"
+      - "11162:11162"
     labels:
       description: "gNMI Simulator Device 2"
   devicesim3:
@@ -25,8 +29,10 @@ services:
     environment:
       - HOSTNAME=localhost
       - GNMI_PORT=10163
-      - SIM_MODE=1  
+      - GNMI_INSECURE_PORT=11163
+      - SIM_MODE=1
     ports:
       - "10163:10163"
+      - "11163:11163"
     labels:
-      description: "gNMI Simulator Device 3"     
+      description: "gNMI Simulator Device 3"
