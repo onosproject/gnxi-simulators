@@ -50,7 +50,8 @@ openssl x509 \
         -CA onfca.crt \
         -CAkey onfca.key \
         -CAcreateserial \
-	-days 365 \
+        -days 3650 \
+        -sha256 -extfile v3.ext \
         -out ${DEVICE}.crt \
 	 > /dev/null 2>&1
 

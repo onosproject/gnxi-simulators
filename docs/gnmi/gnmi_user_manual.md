@@ -495,6 +495,28 @@ curl: (51) SSL: certificate subject name 'device3.opennetworking.org' does not m
 > your browser if you access a site through HTTPS whose certificate CN does not
 > match the URL - it is just a fact of life with HTTPS, and is not peculiar to gNMI.
 
+Alternatively a message like the following can occur:
+```bash
+* Rebuilt URL to: https://onos-config:5150/
+*   Trying 172.17.0.4...
+* TCP_NODELAY set
+* Connected to onos-config (172.17.0.4) port 5150 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: ../simulators/pkg/certs/onfca.crt
+  CApath: /etc/ssl/certs
+* (304) (OUT), TLS handshake, Client hello (1):
+* (304) (IN), TLS alert, Server hello (2):
+* error:14094410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure
+* stopped the pause stream!
+* Closing connection 0
+curl: (35) error:14094410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure
+```
+> This could mean many things - e.g. that the cert on the server is empty or
+> that the Full Qualified Domainname (FQDN) of the device does not match the
+> subject of the certificate.
+
 When device names and certificates match, then curl will reply with a message like:
 ```bash
 curl: (92) HTTP/2 stream 1 was not closed cleanly: INTERNAL_ERROR (err 2)
