@@ -3,7 +3,7 @@ FROM golang:1.11-alpine
 LABEL maintainer="Sean Condon <sean@opennetworking.org>, Adib Rastegarnia <adib@opennetworking.org> "
 LABEL description="Builds a gNMI/gNOI simulator on a Debian distribution"
 
-RUN apk add --update bash && rm -rf /var/cache/apk/*
+RUN apk add --update bash openssl curl && rm -rf /var/cache/apk/*
 
 RUN apk update \
     && apk add \
