@@ -32,7 +32,7 @@ openssl req \
         -newkey rsa:2048 \
         -nodes \
         -keyout ${DEVICE}.key \
-	-noout \
+	      -noout \
         -subj $SUBJ \
 	 > /dev/null 2>&1
 
@@ -51,7 +51,7 @@ openssl x509 \
         -CAkey onfca.key \
         -CAcreateserial \
         -days 3650 \
-        -sha256 -extfile v3.ext \
+        -sha256 \
         -out ${DEVICE}.crt \
 	 > /dev/null 2>&1
 
