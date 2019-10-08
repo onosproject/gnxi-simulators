@@ -492,27 +492,28 @@ func (s *Server) randomEventProducer(c *streamClient, dispatcher *dispatcher.Dis
 	request *gnmi.SubscriptionList) {
 	for {
 		for _, sub := range request.Subscription {
+			if strings.Compare(sub.GetPath().String(), readOnlyPath) == 0 {
+				ipPrefix := "192.168.1"
+				ipSuffix := strconv.Itoa(rand.Intn(254))
+				ip := ipPrefix + "." + ipSuffix
+				subject := "subscribe_stream_randm_event"
+				val := &pb.TypedValue{
+					Value: &pb.TypedValue_StringVal{
+						StringVal: ip,
+					},
+				}
+				update, _ := s.getUpdate(c, request, sub.GetPath())
+				update.Val = val
 
-			ipPrefix := "192.168.1"
-			ipSuffix := strconv.Itoa(rand.Intn(254))
-			ip := ipPrefix + "." + ipSuffix
-			subject := "subscribe_stream_randm_event"
-			val := &pb.TypedValue{
-				Value: &pb.TypedValue_StringVal{
-					StringVal: ip,
-				},
+				event := &events.RandomEvent{
+					Subject: subject,
+					Time:    time.Now(),
+					Etype:   events.EventTypeRandom,
+					Values:  update,
+				}
+				dispatcher.Dispatch(event)
+				time.Sleep(randomEventInterval)
 			}
-			update, _ := s.getUpdate(c, request, sub.GetPath())
-			update.Val = val
-
-			event := &events.RandomEvent{
-				Subject: subject,
-				Time:    time.Now(),
-				Etype:   events.EventTypeRandom,
-				Values:  update,
-			}
-			dispatcher.Dispatch(event)
-			time.Sleep(randomEventInterval)
 		}
 
 	}
