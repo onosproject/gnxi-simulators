@@ -24,7 +24,8 @@ vet: # @HELP examines Go source code and reports suspicious constructs
 	go vet github.com/onosproject/simulators/cmd/...
 
 license_check: # @HELP examine and ensure license headers exist
-	./build/licensing/boilerplate.py -v
+	@if [ ! -d "../build-tools" ]; then cd .. && git clone https://github.com/onosproject/build-tools.git; fi
+	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
 gofmt: # @HELP run the go format utility against code in the pkg and cmd directories
 	bash -c "diff -u <(echo -n) <(gofmt -d pkg/ cmd/)"
