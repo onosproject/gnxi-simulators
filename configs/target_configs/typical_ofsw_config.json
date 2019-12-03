@@ -35,6 +35,15 @@
       "login-banner": "This device is for authorized use only",
       "motd-banner": "replace-motd-banner"
     },
+    "state" : {
+      "boot-time": "1575415411",
+      "current-datetime": "2019-12-04T10:00:00Z-05:00",
+      "hostname": "replace-device-name",
+      "domain-name": "opennetworking.org",
+      "login-banner": "This device is for authorized use only",
+      "motd-banner": "replace-motd-banner"
+
+    },
     "openconfig-openflow:openflow": {
       "agent": {
         "config": {

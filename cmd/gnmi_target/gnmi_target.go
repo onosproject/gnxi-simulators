@@ -22,6 +22,7 @@ import (
 	"net"
 	"os"
 	"reflect"
+	"time"
 
 	log "github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -81,8 +82,18 @@ func main() {
 		log.Exitf("failed to listen: %v", err)
 	}
 
+	go func() {
+
+		for {
+			s.SetDateTime()
+			time.Sleep(time.Second * 1)
+		}
+
+	}()
+
 	log.Info("starting to serve")
 	if err := g.Serve(listen); err != nil {
 		log.Exitf("failed to serve: %v", err)
 	}
+
 }
