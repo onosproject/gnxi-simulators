@@ -63,6 +63,7 @@ var (
 	readOnlyPath                = `elem:<name:"system" > elem:<name:"openflow" > elem:<name:"controllers" > elem:<name:"controller" key:<key:"name" value:"main" > > elem:<name:"connections" > elem:<name:"connection" key:<key:"aux-id" value:"0" > > elem:<name:"state" > elem:<name:"address" > `
 	randomEventInterval         = time.Duration(5) * time.Second
 	lowestSampleInterval uint64 = 5000000000 // 5000000000 nanoseconds
+	currentDateTime             = `elem:<name:"system" > elem:<name:"state" > elem:<name:"current-datetime" > `
 )
 
 type streamClient struct {
