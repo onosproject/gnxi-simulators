@@ -29,11 +29,14 @@ through which it can be accessed. The device simulator's service can be seen by 
 NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
 devicesim-1-device-simulator         ClusterIP   10.106.28.52    <none>        10161/TCP        25m
 ```
+
 ### Notify the system about the new simulator.
+
 To notify the system about the newly added simulator or device please go into `onos-cli` and issue the command
 ```bash
 onos topo add device devicesim-1 --address devicesim-1-device-simulator:10161 --type Devicesim --version 1.0.0
 ```
+
 ### Installing the chart in a different namespace.
 
 Issue the `helm install` command substituting `micro-onos` with your namespace.
@@ -41,7 +44,7 @@ Issue the `helm install` command substituting `micro-onos` with your namespace.
 helm install -n <your_name_space> devicesim-1 deployments/helm/device-simulator
 ```
 
-#### Deploying multiple simulators
+### Deploying multiple simulators
 
 To deploy multiple simulators, simply install the simulator chart _n_ times
 to create _n_ devices, each with a unique name:
