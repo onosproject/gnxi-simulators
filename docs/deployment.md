@@ -34,7 +34,7 @@ devicesim-1-device-simulator         ClusterIP   10.106.28.52    <none>        1
 
 To notify the system about the newly added simulator or device please go into `onos-cli` and issue the command
 ```bash
-onos topo add device devicesim-1 --address devicesim-1-device-simulator:10161 --type Devicesim --version 1.0.0
+onos topo add device devicesim-1 --address devicesim-1-device-simulator:11161 --type Devicesim --version 1.0.0 --insecure
 ```
 
 ### Installing the chart in a different namespace.
