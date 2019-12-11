@@ -13,5 +13,7 @@ spec:
   selector:
     name: {{ template "device-simulator.fullname" . }}
   ports:
-    - name: gnmi
-      port: 10161
+    {{- range $key, $port := .Values.ports.gnmi }}
+    - name: gnmi{{ $key }}
+      port: {{ $port }}
+    {{- end}}

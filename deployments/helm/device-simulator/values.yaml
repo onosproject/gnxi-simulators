@@ -1,6 +1,7 @@
 nameOverride: ""
+fullnameOverride: ""
 
-replicas: 1
+replicaCount: 1
 annotations: {}
 
 image:
@@ -16,3 +17,14 @@ resources:
 
 service:
   type: ClusterIP
+
+ports:
+  gnmi:
+    secure: 10161
+    insecure: 11161
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
