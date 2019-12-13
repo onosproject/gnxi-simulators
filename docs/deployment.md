@@ -5,12 +5,13 @@ with an atomix controller deployed in a namespace.
 `device-simulator` Helm chart is based on Helm 3.0 version, with no need for the Tiller pod to be present.   
 If you don't have a cluster running and want to try on your local machine please follow first 
 the [Kubernetes] setup steps outlined to [deploy with Helm](https://docs.onosproject.org/developers/deploy_with_helm/).
-The following steps assume you have the setup outlined in that page, including the `micro-onos` namespace configured. 
+The following steps assume you have the setup outlined in that page, including the `micro-onos` namespace configured.
 
-Device simulators can be deployed using the `deployments/helm/device-simulator` chart:
+Device simulators can be deployed on their own using (from `onos-helm-charts`)
+the `device-simulator` chart:
 
 ```bash
-> helm install -n micro-onos devicesim-1 deployments/helm/device-simulator
+> helm install -n micro-onos devicesim-1 device-simulator
 ```
 with output along the lines of 
 ```bash
@@ -41,7 +42,7 @@ onos topo add device devicesim-1 --address devicesim-1-device-simulator:11161 --
 
 Issue the `helm install` command substituting `micro-onos` with your namespace.
 ```bash
-helm install -n <your_name_space> devicesim-1 deployments/helm/device-simulator
+helm install -n <your_name_space> devicesim-1 device-simulator
 ```
 
 ### Deploying multiple simulators
@@ -50,9 +51,9 @@ To deploy multiple simulators, simply install the simulator chart _n_ times
 to create _n_ devices, each with a unique name:
 
 ```bash
-> helm install -n micro-onos devicesim-1 deployments/helm/device-simulator
-> helm install -n micro-onos devicesim-2 deployments/helm/device-simulator
-> helm install -n micro-onos devicesim-3 deployments/helm/device-simulator
+> helm install -n micro-onos devicesim-1 device-simulator
+> helm install -n micro-onos devicesim-2 device-simulator
+> helm install -n micro-onos devicesim-3 device-simulator
 ```
 
 ### Troubleshoot
@@ -64,7 +65,7 @@ debug your chart:
 * `--debug` prints out more information about your chart
 
 ```bash
-helm install -n micro-onos devicesim-1 --debug --dry-run deployments/helm/device-simulator
+helm install -n micro-onos devicesim-1 --debug --dry-run device-simulator
 ```
 
 [Helm]: https://helm.sh/
