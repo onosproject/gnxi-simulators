@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -31,8 +30,6 @@ import (
 	log "github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/onosproject/simulators/pkg/dispatcher"
-	"github.com/onosproject/simulators/pkg/events"
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/experimental/ygotutils"
 	"github.com/openconfig/ygot/ygot"
@@ -484,78 +481,6 @@ func (s *Server) collector(c *streamClient, request *pb.SubscriptionList) {
 		if err == nil {
 			c.UpdateChan <- update
 		}
-	}
-}
-
-// randomEventProducer produces update events for stream subscribers.
-func (s *Server) randomEventProducer(c *streamClient, dispatcher *dispatcher.Dispatcher,
-	request *gnmi.SubscriptionList) {
-	for {
-		for _, sub := range request.Subscription {
-			if strings.Compare(sub.GetPath().String(), readOnlyPath) == 0 {
-				ipPrefix := "192.168.1"
-				ipSuffix := strconv.Itoa(rand.Intn(254))
-				ip := ipPrefix + "." + ipSuffix
-				subject := "subscribe_stream_randm_event"
-				val := &pb.TypedValue{
-					Value: &pb.TypedValue_StringVal{
-						StringVal: ip,
-					},
-				}
-				update, _ := s.getUpdate(c, request, sub.GetPath())
-				update.Val = val
-
-				event := &events.RandomEvent{
-					Subject: subject,
-					Time:    time.Now(),
-					Etype:   events.EventTypeRandom,
-					Values:  update,
-				}
-				dispatcher.Dispatch(event)
-				time.Sleep(randomEventInterval)
-			}
-		}
-
-	}
-}
-
-// sendRandomEvent stream random events to the subscribed clients.
-// This function is just for testing purposes and is not part of the
-// gnmi specification.
-func (s *Server) sendRandomEvent(c *streamClient, request *gnmi.SubscriptionList) {
-	dispatcher := dispatcher.NewDispatcher()
-	ok := dispatcher.RegisterEvent((*events.RandomEvent)(nil))
-
-	if !ok {
-		log.Error("Cannot register an event")
-	}
-
-	ch := make(chan events.RandomEvent, 100)
-	ok = dispatcher.RegisterListener(ch)
-
-	if !ok {
-		log.Error("Cannot register the listener")
-	}
-	go s.randomEventProducer(c, dispatcher, request)
-	for result := range ch {
-
-		var update *pb.Update
-		update = result.GetValues().(*pb.Update)
-
-		response, _ := buildSubResponse(update)
-		// Update the readOnlyUpdateValue variable to be accessible with get function
-		s.readOnlyUpdateValue = update
-
-		s.sendResponse(response, c.stream)
-		responseSync := &pb.SubscribeResponse_SyncResponse{
-			SyncResponse: true,
-		}
-		response = &pb.SubscribeResponse{
-			Response: responseSync,
-		}
-
-		s.sendResponse(response, c.stream)
-
 	}
 }
 

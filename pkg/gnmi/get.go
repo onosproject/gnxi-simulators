@@ -98,23 +98,6 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		}
 
 		ts := time.Now().UnixNano()
-		// Handling the read random state field
-		if strings.Compare(path.String(), readOnlyPath) == 0 {
-			// If no subscribe request is initiated on random state variable
-			// then we should return the initial value in the config otherwise
-			// we will return the last random value which is stored in "readOnlyUpdateValue"
-			// variable.
-			if s.readOnlyUpdateValue.Val.GetStringVal() != "INIT_STATE" {
-				update := s.readOnlyUpdateValue
-				notifications[i] = &pb.Notification{
-					Timestamp: ts,
-					Prefix:    req.GetPrefix(),
-					Update:    []*pb.Update{update},
-				}
-				resp := &pb.GetResponse{Notification: notifications}
-				return resp, nil
-			}
-		}
 
 		node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, fullPath)
 		if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {

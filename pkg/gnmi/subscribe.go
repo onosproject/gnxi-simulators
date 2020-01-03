@@ -18,7 +18,6 @@ package gnmi
 import (
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -92,11 +91,6 @@ func (s *Server) Subscribe(stream pb.GNMI_SubscribeServer) error {
 		case pb.SubscriptionList_POLL:
 			go s.processSubscribePoll(&c, subscribe)
 		case pb.SubscriptionList_STREAM:
-			for _, sub := range subscribe.Subscription {
-				if strings.Compare(sub.GetPath().String(), readOnlyPath) == 0 {
-					go s.sendRandomEvent(&c, subscribe)
-				}
-			}
 			// Adds streamClient to the list of subscribers
 			for _, sub := range subscribe.Subscription {
 				s.subscribers[sub.GetPath().String()] = &c
