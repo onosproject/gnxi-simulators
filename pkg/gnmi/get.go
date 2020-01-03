@@ -97,14 +97,12 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 			return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 		}
 
-		ts := time.Now().UnixNano()
-
 		node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, fullPath)
 		if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {
 			return nil, status.Errorf(codes.NotFound, "path %v not found (Test)", fullPath)
 		}
 
-		ts = time.Now().UnixNano()
+		ts := time.Now().UnixNano()
 
 		nodeStruct, ok := node.(ygot.GoStruct)
 		dataTypeFlag := false
