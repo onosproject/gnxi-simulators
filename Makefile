@@ -43,6 +43,9 @@ simulators-docker:
 	--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 	-t onosproject/device-simulator:${ONOS_SIMULATORS_VERSION}
 
+publish: # @HELP publish version on github and dockerhub
+	./../build-tools/publish-version ${VERSION} onosproject/device-simulator
+
 clean: # @HELP remove all the build artifacts
 	rm -rf ./build/_output
 	rm -rf ./vendor
