@@ -1,5 +1,4 @@
-ARG ONOS_BUILD_VERSION=stable
-FROM golang:1.13-alpine AS build
+FROM golang:1.14-alpine AS build
 LABEL maintainer="Sean Condon <sean@opennetworking.org>, Adib Rastegarnia <adib@opennetworking.org> "
 LABEL description="Builds a gNMI/gNOI simulator on a Debian distribution"
 
