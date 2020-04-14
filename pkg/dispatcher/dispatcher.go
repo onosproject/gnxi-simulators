@@ -69,7 +69,7 @@ func (d *Dispatcher) RegisterListener(pipe interface{}) bool {
 }
 
 // Dispatch provides thread safe method to send event to all listeners
-// Returns true if succeded and false if event was not registered
+// Returns true if succeeded and false if event was not registered
 func (d *Dispatcher) Dispatch(event events.Event) bool {
 	d.lock.RLock()
 	defer d.lock.RUnlock()

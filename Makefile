@@ -4,7 +4,7 @@ export GO111MODULE=on
 .PHONY: build
 
 ONOS_SIMULATORS_VERSION := latest
-ONOS_BUILD_VERSION := stable
+ONOS_BUILD_VERSION := v0.5.0
 
 all: build images
 
@@ -16,25 +16,19 @@ deps: # @HELP ensure that the required dependencies are in place
 	bash -c "diff -u <(echo -n) <(git diff go.mod)"
 	bash -c "diff -u <(echo -n) <(git diff go.sum)"
 
-lint: # @HELP run the linters for Go source code
-	go list ./... | grep -v /gnmi/modeldat |  xargs -L1 golint -set_exit_status
-
-vet: # @HELP examines Go source code and reports suspicious constructs
-	go vet github.com/onosproject/simulators/pkg/... 
-	go vet github.com/onosproject/simulators/cmd/...
+linters: # @HELP examines Go source code and reports coding problems
+	golangci-lint run
 
 license_check: # @HELP examine and ensure license headers exist
 	@if [ ! -d "../build-tools" ]; then cd .. && git clone https://github.com/onosproject/build-tools.git; fi
 	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
-gofmt: # @HELP run the go format utility against code in the pkg and cmd directories
-	bash -c "diff -u <(echo -n) <(gofmt -d pkg/ cmd/)"
 
 # @HELP build the go binary in the cmd/gnmi_target package
-build: test
+build:
 	go build -o build/_output/gnmi_target ./cmd/gnmi_target
 
-test: deps vet license_check gofmt lint
+test: build deps license_check linters
 	go test github.com/onosproject/simulators/pkg/...
 	go test github.com/onosproject/simulators/cmd/...
 
@@ -42,6 +36,11 @@ simulators-docker:
 	docker build . -f Dockerfile \
 	--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 	-t onosproject/device-simulator:${ONOS_SIMULATORS_VERSION}
+
+kind: # @HELP build Docker images and add them to the currently configured kind cluster
+kind: images
+	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
+	kind load docker-image onosproject/device-simulator:${ONOS_SIMULATORS_VERSION}
 
 publish: # @HELP publish version on github and dockerhub
 	./../build-tools/publish-version ${VERSION} onosproject/device-simulator
