@@ -20,7 +20,7 @@ then
        -alsologtostderr \
        -notls \
        -insecure \
-       -config $HOME/target_configs/typical_ofsw_config.json > /dev/null 2>&1 &
+       -config $HOME/target_configs/typical_ofsw_config.json &
 
     gnmi_target \
        -bind_address :$GNMI_PORT \
@@ -28,8 +28,7 @@ then
        -cert $HOME/certs/$hostname.crt \
        -ca $HOME/certs/onfca.crt \
        -alsologtostderr \
-       -config $HOME/target_configs/typical_ofsw_config.json > /dev/null 2>&1
-
+       -config $HOME/target_configs/typical_ofsw_config.json
 
 
 elif [ $SIM_MODE == 2 ]; 
@@ -62,14 +61,14 @@ then
        -cert $HOME/certs/$hostname.crt \
        -ca $HOME/certs/onfca.crt \
        -alsologtostderr \
-       -config $HOME/target_configs/typical_ofsw_config.json > /dev/null 2>&1 &
+       -config $HOME/target_configs/typical_ofsw_config.json &
 
     gnmi_target \
        -bind_address :$GNMI_INSECURE_PORT \
        -alsologtostderr \
        -notls \
        -insecure \
-       -config $HOME/target_configs/typical_ofsw_config.json > /dev/null 2>&1 &
+       -config $HOME/target_configs/typical_ofsw_config.json &
     
     gnoi_target \
       -bind_address :$GNOI_PORT \

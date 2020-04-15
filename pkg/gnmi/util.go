@@ -577,7 +577,7 @@ func buildSyncResponse() *gnmi.SubscribeResponse {
 	}
 }
 
-// Contains checks the existance of a given string in an array of strings.
+// Contains checks the existence of a given string in an array of strings.
 func Contains(a []string, x string) bool {
 	for _, n := range a {
 		if x == n {
