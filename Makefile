@@ -4,7 +4,7 @@ export GO111MODULE=on
 .PHONY: build
 
 ONOS_SIMULATORS_VERSION := latest
-ONOS_BUILD_VERSION := v0.5.0
+ONOS_BUILD_VERSION := v0.6.0
 
 all: build images
 
