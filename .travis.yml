@@ -27,3 +27,4 @@ jobs:
     - stage: tests
       script:
         - make test
+        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./build/bin/push-images; fi'
