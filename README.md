@@ -1,5 +1,6 @@
 # Simulators
-[![Build Status](https://travis-ci.com/onosproject/simulators.svg?branch=master)](https://travis-ci.com/onosproject/simulators)
+
+[![Build Status](https://api.travis-ci.org/onosproject/gnxi-simulators.svg?branch=master)](https://travis-ci.org/onosproject/gnxi-simulators)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gojp/goreportcard/blob/master/LICENSE)
 [![GoDoc](https://godoc.org/github.com/onosproject/simulators?status.svg)](https://godoc.org/github.com/onosproject/simulators)
 
