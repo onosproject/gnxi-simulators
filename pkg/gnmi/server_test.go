@@ -206,7 +206,7 @@ func TestGet(t *testing.T) {
 		wantRetCode: codes.NotFound,
 	}, {
 		desc:        "use of model data not supported",
-		modelData:   []*pb.ModelData{&pb.ModelData{}},
+		modelData:   []*pb.ModelData{{}},
 		wantRetCode: codes.Unimplemented,
 	}}
 

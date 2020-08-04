@@ -10,7 +10,8 @@ all: build images
 
 images: # @HELP build simulators image
 images: simulators-docker
-	
+
+
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...
 	bash -c "diff -u <(echo -n) <(git diff go.mod)"
