@@ -7,16 +7,15 @@ RUN cd $GOPATH \
       github.com/google/gnxi/gnoi_target@6697a080bc2d3287d9614501a3298b3dcfea06df \
       github.com/google/gnxi/gnoi_cert@6697a080bc2d3287d9614501a3298b3dcfea06df 
 
-ENV ONOS_SIMULATORS_ROOT=$GOPATH/src/github.com/onosproject/simulators
+ENV ONOS_SIMULATORS_ROOT=/go/src/github.com/onosproject/gnxi-simulators
 ENV CGO_ENABLED=0
 
 RUN mkdir -p $ONOS_SIMULATORS_ROOT/
 
-COPY cmd/ $ONOS_SIMULATORS_ROOT/cmd/
-COPY pkg/ $ONOS_SIMULATORS_ROOT/pkg/
+COPY . $ONOS_SIMULATORS_ROOT
 
-RUN cd $ONOS_SIMULATORS_ROOT && \
-    GO111MODULE=on go get github.com/onosproject/simulators/cmd/gnmi_target
+RUN cd $ONOS_SIMULATORS_ROOT && GO111MODULE=on go build -o /go/bin/gnmi_target ./cmd/gnmi_target
+
 
 FROM alpine:3.11
 RUN apk add bash openssl curl libc6-compat
