@@ -20,7 +20,7 @@ import (
 
 	log "github.com/golang/glog"
 
-	"github.com/onosproject/simulators/pkg/events"
+	"github.com/onosproject/gnxi-simulators/pkg/events"
 )
 
 //Dispatcher dispatches the events

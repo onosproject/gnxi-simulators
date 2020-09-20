@@ -19,8 +19,8 @@ import (
 	"time"
 
 	log "github.com/golang/glog"
-	"github.com/onosproject/simulators/pkg/gnmi"
-	"github.com/onosproject/simulators/pkg/utils"
+	"github.com/onosproject/gnxi-simulators/pkg/gnmi"
+	"github.com/onosproject/gnxi-simulators/pkg/utils"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/ygot/ygot"
 	"google.golang.org/grpc/codes"

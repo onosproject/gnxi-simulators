@@ -18,7 +18,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/onosproject/simulators/pkg/gnmi"
+	"github.com/onosproject/gnxi-simulators/pkg/gnmi"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/ygot/ygot"
 )
