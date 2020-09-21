@@ -28,9 +28,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/onosproject/simulators/pkg/gnmi"
-	"github.com/onosproject/simulators/pkg/gnmi/modeldata"
-	"github.com/onosproject/simulators/pkg/gnmi/modeldata/gostruct"
+	"github.com/onosproject/gnxi-simulators/pkg/gnmi"
+	"github.com/onosproject/gnxi-simulators/pkg/gnmi/modeldata"
+	"github.com/onosproject/gnxi-simulators/pkg/gnmi/modeldata/gostruct"
 
 	"github.com/google/gnxi/utils/credentials"
 

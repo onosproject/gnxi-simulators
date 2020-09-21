@@ -26,12 +26,12 @@ license_check: # @HELP examine and ensure license headers exist
 
 
 # @HELP build the go binary in the cmd/gnmi_target package
-build:
+build: deps
 	go build -o build/_output/gnmi_target ./cmd/gnmi_target
 
 test: build deps license_check linters
-	go test github.com/onosproject/simulators/pkg/...
-	go test github.com/onosproject/simulators/cmd/...
+	go test github.com/onosproject/gnxi-simulators/pkg/...
+	go test github.com/onosproject/gnxi-simulators/cmd/...
 
 simulators-docker:
 	docker build . -f Dockerfile \
