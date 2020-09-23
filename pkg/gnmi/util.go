@@ -378,11 +378,25 @@ func (s *Server) getUpdateForPath(fullPath *pb.Path) (*pb.Update, error) {
 
 		case reflect.Slice:
 			var err error
-			val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
-			if err != nil {
-				msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", fullPath, err)
-				log.Error(msg)
-				return nil, status.Error(codes.Internal, msg)
+			switch kind := reflect.ValueOf(node[0].Data).Kind(); kind {
+			case reflect.Int64:
+				//fmt.Println(reflect.TypeOf(node[0].Data).Elem())
+				enumMap, ok := s.model.enumData[reflect.TypeOf(node[0].Data).Name()]
+				if !ok {
+					return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+				}
+				val = &pb.TypedValue{
+					Value: &pb.TypedValue_StringVal{
+						StringVal: enumMap[reflect.ValueOf(node[0].Data).Int()].Name,
+					},
+				}
+			default:
+				val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
+				if err != nil {
+					msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", fullPath, err)
+					log.Error(msg)
+					return nil, status.Error(codes.Internal, msg)
+				}
 			}
 		default:
 			return nil, status.Errorf(codes.Internal, "unexpected kind of leaf node type: %v %v", node, kind)
@@ -441,11 +455,25 @@ func (s *Server) getUpdate(c *streamClient, subList *pb.SubscriptionList, path *
 
 		case reflect.Slice:
 			var err error
-			val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
-			if err != nil {
-				msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
-				log.Error(msg)
-				return nil, status.Error(codes.Internal, msg)
+			switch kind := reflect.ValueOf(node[0].Data).Kind(); kind {
+			case reflect.Int64:
+				//fmt.Println(reflect.TypeOf(node[0].Data).Elem())
+				enumMap, ok := s.model.enumData[reflect.TypeOf(node[0].Data).Name()]
+				if !ok {
+					return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+				}
+				val = &pb.TypedValue{
+					Value: &pb.TypedValue_StringVal{
+						StringVal: enumMap[reflect.ValueOf(node[0].Data).Int()].Name,
+					},
+				}
+			default:
+				val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
+				if err != nil {
+					msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
+					log.Error(msg)
+					return nil, status.Error(codes.Internal, msg)
+				}
 			}
 
 		default:

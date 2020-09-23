@@ -59,6 +59,10 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		path := pb.Path{}
 		// Gets the whole config data tree
 		node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, &path, nil)
+		if isNil(node) || err != nil {
+			return nil, status.Errorf(codes.NotFound, "path %v not found", path)
+		}
+
 		nodeStruct, _ := node[0].Data.(ygot.GoStruct)
 		jsonTree, _ := ygot.ConstructIETFJSON(nodeStruct, &ygot.RFC7951JSONConfig{AppendModuleName: true})
 
