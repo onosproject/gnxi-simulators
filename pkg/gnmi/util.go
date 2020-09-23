@@ -27,13 +27,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openconfig/ygot/ytypes"
+
 	log "github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/openconfig/goyang/pkg/yang"
-	"github.com/openconfig/ygot/experimental/ygotutils"
 	"github.com/openconfig/ygot/ygot"
-	cpb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -346,12 +346,12 @@ func (s *Server) sendResponse(response *pb.SubscribeResponse, stream pb.GNMI_Sub
 // getUpdateForPath finds a leaf node in the tree based on a given path, build the update message and return it back to the collector
 func (s *Server) getUpdateForPath(fullPath *pb.Path) (*pb.Update, error) {
 
-	node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, fullPath)
-	if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {
-		return nil, status.Errorf(codes.NotFound, "path %v not found", fullPath)
+	node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
+	if isNil(node) || err != nil {
+		return nil, err
 	}
 
-	_, ok := node.(ygot.GoStruct)
+	_, ok := node[0].Data.(ygot.GoStruct)
 	// Return leaf node.
 	if !ok {
 		var val *pb.TypedValue
@@ -374,6 +374,28 @@ func (s *Server) getUpdateForPath(fullPath *pb.Path) (*pb.Update, error) {
 				Value: &pb.TypedValue_StringVal{
 					StringVal: enumMap[reflect.ValueOf(node).Int()].Name,
 				},
+			}
+
+		case reflect.Slice:
+			var err error
+			switch kind := reflect.ValueOf(node[0].Data).Kind(); kind {
+			case reflect.Int64:
+				enumMap, ok := s.model.enumData[reflect.TypeOf(node[0].Data).Name()]
+				if !ok {
+					return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+				}
+				val = &pb.TypedValue{
+					Value: &pb.TypedValue_StringVal{
+						StringVal: enumMap[reflect.ValueOf(node[0].Data).Int()].Name,
+					},
+				}
+			default:
+				val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
+				if err != nil {
+					msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", fullPath, err)
+					log.Error(msg)
+					return nil, status.Error(codes.Internal, msg)
+				}
 			}
 		default:
 			return nil, status.Errorf(codes.Internal, "unexpected kind of leaf node type: %v %v", node, kind)
@@ -399,13 +421,13 @@ func (s *Server) getUpdate(c *streamClient, subList *pb.SubscriptionList, path *
 	if fullPath.GetElem() == nil && fullPath.GetElement() != nil {
 		return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 	}
-	node, stat := ygotutils.GetNode(s.model.schemaTreeRoot, s.config, fullPath)
-	if isNil(node) || stat.GetCode() != int32(cpb.Code_OK) {
-		return nil, status.Errorf(codes.NotFound, "path %v not found", fullPath)
-
+	node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
+	if isNil(node) || err != nil {
+		return nil, err
 	}
 
-	nodeStruct, ok := node.(ygot.GoStruct)
+	nodeStruct, ok := node[0].Data.(ygot.GoStruct)
+
 	// Return leaf node.
 	if !ok {
 		var val *pb.TypedValue
@@ -429,6 +451,30 @@ func (s *Server) getUpdate(c *streamClient, subList *pb.SubscriptionList, path *
 					StringVal: enumMap[reflect.ValueOf(node).Int()].Name,
 				},
 			}
+
+		case reflect.Slice:
+			var err error
+			switch kind := reflect.ValueOf(node[0].Data).Kind(); kind {
+			case reflect.Int64:
+				//fmt.Println(reflect.TypeOf(node[0].Data).Elem())
+				enumMap, ok := s.model.enumData[reflect.TypeOf(node[0].Data).Name()]
+				if !ok {
+					return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+				}
+				val = &pb.TypedValue{
+					Value: &pb.TypedValue_StringVal{
+						StringVal: enumMap[reflect.ValueOf(node[0].Data).Int()].Name,
+					},
+				}
+			default:
+				val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
+				if err != nil {
+					msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
+					log.Error(msg)
+					return nil, status.Error(codes.Internal, msg)
+				}
+			}
+
 		default:
 			return nil, status.Errorf(codes.Internal, "unexpected kind of leaf node type: %v %v", node, kind)
 		}
