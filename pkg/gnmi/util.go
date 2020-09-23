@@ -380,7 +380,6 @@ func (s *Server) getUpdateForPath(fullPath *pb.Path) (*pb.Update, error) {
 			var err error
 			switch kind := reflect.ValueOf(node[0].Data).Kind(); kind {
 			case reflect.Int64:
-				//fmt.Println(reflect.TypeOf(node[0].Data).Elem())
 				enumMap, ok := s.model.enumData[reflect.TypeOf(node[0].Data).Name()]
 				if !ok {
 					return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
