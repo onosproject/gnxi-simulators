@@ -347,7 +347,7 @@ func (s *Server) sendResponse(response *pb.SubscribeResponse, stream pb.GNMI_Sub
 func (s *Server) getUpdateForPath(fullPath *pb.Path) (*pb.Update, error) {
 
 	node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
-	if err != nil {
+	if isNil(node) || err != nil {
 		return nil, err
 	}
 
@@ -409,8 +409,7 @@ func (s *Server) getUpdate(c *streamClient, subList *pb.SubscriptionList, path *
 		return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 	}
 	node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
-
-	if err != nil {
+	if isNil(node) || err != nil {
 		return nil, err
 	}
 
