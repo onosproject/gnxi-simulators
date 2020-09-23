@@ -231,7 +231,6 @@ func runTestGet(t *testing.T, s *Server, textPbPath string, wantRetCode codes.Co
 		UseModels: useModels,
 	}
 	resp, err := s.Get(nil, req)
-
 	// Check return code
 	gotRetStatus, ok := status.FromError(err)
 	if !ok {

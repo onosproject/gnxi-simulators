@@ -93,10 +93,10 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 			return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 		}
 		node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
-
-		if err != nil {
-			return nil, err
+		if isNil(node) || err != nil {
+			return nil, status.Errorf(codes.NotFound, "path %v not found", path)
 		}
+
 		ts := time.Now().UnixNano()
 
 		nodeStruct, ok := node[0].Data.(ygot.GoStruct)
@@ -129,23 +129,28 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 					log.Error(msg)
 					return nil, status.Error(codes.Internal, msg)
 				}
-			case reflect.Int64:
-				enumMap, ok := s.model.enumData[reflect.TypeOf(node).Name()]
-				if !ok {
-					return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
-				}
-				val = &pb.TypedValue{
-					Value: &pb.TypedValue_StringVal{
-						StringVal: enumMap[reflect.ValueOf(node).Int()].Name,
-					},
-				}
+
 			case reflect.Slice:
 				var err error
-				val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
-				if err != nil {
-					msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
-					log.Error(msg)
-					return nil, status.Error(codes.Internal, msg)
+				switch kind := reflect.ValueOf(node[0].Data).Kind(); kind {
+				case reflect.Int64:
+					//fmt.Println(reflect.TypeOf(node[0].Data).Elem())
+					enumMap, ok := s.model.enumData[reflect.TypeOf(node[0].Data).Name()]
+					if !ok {
+						return nil, status.Error(codes.Internal, "not a GoStruct enumeration type")
+					}
+					val = &pb.TypedValue{
+						Value: &pb.TypedValue_StringVal{
+							StringVal: enumMap[reflect.ValueOf(node[0].Data).Int()].Name,
+						},
+					}
+				default:
+					val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
+					if err != nil {
+						msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
+						log.Error(msg)
+						return nil, status.Error(codes.Internal, msg)
+					}
 				}
 
 			default:
@@ -173,6 +178,11 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		}
 
 		var jsonTree map[string]interface{}
+
+		if reflect.ValueOf(nodeStruct).Pointer() == 0 {
+			return nil, status.Error(codes.NotFound, "value is 0")
+
+		}
 		jsonTree, err = jsonEncoder(jsonType, nodeStruct)
 		jsonTree = pruneConfigData(jsonTree, strings.ToLower(dataTypeString), fullPath).(map[string]interface{})
 		if err != nil {
