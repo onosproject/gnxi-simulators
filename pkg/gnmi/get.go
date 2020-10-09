@@ -97,7 +97,7 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 			return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 		}
 		node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
-		if isNil(node) || !reflect.ValueOf(node[0].Data).Elem().IsValid() || err != nil {
+		if isNil(node) || err != nil {
 			return nil, status.Errorf(codes.NotFound, "path %v not found", path)
 		}
 
@@ -149,6 +149,9 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 						},
 					}
 				default:
+					if !reflect.ValueOf(node[0].Data).Elem().IsValid() {
+						return nil, status.Errorf(codes.NotFound, "path %v not found", path)
+					}
 					val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
 					if err != nil {
 						msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
