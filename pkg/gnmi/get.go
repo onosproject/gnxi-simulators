@@ -97,7 +97,7 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 			return nil, status.Error(codes.Unimplemented, "deprecated path element type is unsupported")
 		}
 		node, err := ytypes.GetNode(s.model.schemaTreeRoot, s.config, fullPath, nil)
-		if isNil(node) || err != nil {
+		if isNil(node) || !reflect.ValueOf(node[0].Data).Elem().IsValid() || err != nil {
 			return nil, status.Errorf(codes.NotFound, "path %v not found", path)
 		}
 
