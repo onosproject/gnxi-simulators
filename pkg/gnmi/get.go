@@ -149,6 +149,9 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 						},
 					}
 				default:
+					if !reflect.ValueOf(node[0].Data).Elem().IsValid() {
+						return nil, status.Errorf(codes.NotFound, "path %v not found", path)
+					}
 					val, err = value.FromScalar(reflect.ValueOf(node[0].Data).Elem().Interface())
 					if err != nil {
 						msg := fmt.Sprintf("leaf node %v does not contain a scalar type value: %v", path, err)
