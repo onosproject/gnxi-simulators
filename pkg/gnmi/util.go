@@ -224,8 +224,8 @@ func (s *Server) checkEncodingAndModel(encoding pb.Encoding, models []*pb.ModelD
 // InternalUpdate is an experimental feature to let the server update its
 // internal states. Use it with your own risk.
 func (s *Server) InternalUpdate(fp func(config ygot.ValidatedGoStruct) error) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.configMu.Lock()
+	defer s.configMu.Unlock()
 	return fp(s.config)
 }
 
@@ -552,7 +552,8 @@ func (s *Server) listenForUpdates(c *streamClient) {
 // configEventProducer produces update events for stream subscribers.
 func (s *Server) listenToConfigEvents(request *pb.SubscriptionList) {
 	for update := range s.ConfigUpdate {
-		for key, c := range s.subscribers {
+		subscribers := s.getSubscribers()
+		for key, c := range subscribers {
 			if key == update.GetPath().String() {
 				newUpdateValue, err := s.getUpdate(c, request, update.GetPath())
 
@@ -576,7 +577,22 @@ func (s *Server) listenToConfigEvents(request *pb.SubscriptionList) {
 			}
 		}
 	}
+}
 
+func (s *Server) getSubscribers() map[string]*streamClient {
+	s.subMu.RLock()
+	defer s.subMu.RUnlock()
+	subscribers := make(map[string]*streamClient)
+	for key, c := range s.subscribers {
+		subscribers[key] = c
+	}
+	return subscribers
+}
+
+func (s *Server) addSubscriber(key string, c *streamClient) {
+	s.subMu.Lock()
+	s.subscribers[key] = c
+	s.subMu.Unlock()
 }
 
 // buildSubResponse builds a subscribeResponse based on the given Update message.

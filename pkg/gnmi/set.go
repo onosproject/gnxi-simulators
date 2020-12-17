@@ -185,8 +185,8 @@ func (s *Server) doReplaceOrUpdate(jsonTree map[string]interface{}, op pb.Update
 
 // Set implements the Set RPC in gNMI spec.
 func (s *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.configMu.Lock()
+	defer s.configMu.Unlock()
 
 	jsonTree, err := ygot.ConstructIETFJSON(s.config, &ygot.RFC7951JSONConfig{})
 	if err != nil {

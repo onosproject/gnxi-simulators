@@ -30,8 +30,8 @@ import (
 
 // SetDateTime update current-datetime field in runtime
 func (s *Server) SetDateTime() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.configMu.Lock()
+	defer s.configMu.Unlock()
 	var path pb.Path
 	textPbPath := `elem:<name:"system" > elem:<name:"state" > elem:<name:"current-datetime" > `
 	if err := proto.UnmarshalText(textPbPath, &path); err != nil {
