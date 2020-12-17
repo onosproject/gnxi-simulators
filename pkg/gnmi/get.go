@@ -46,8 +46,8 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 	paths := req.GetPath()
 	notifications := make([]*pb.Notification, len(paths))
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.configMu.RLock()
+	defer s.configMu.RUnlock()
 
 	if paths == nil && dataType.String() != "" {
 

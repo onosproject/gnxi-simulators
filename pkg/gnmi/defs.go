@@ -53,7 +53,8 @@ type Server struct {
 	callback            ConfigCallback
 	config              ygot.ValidatedGoStruct
 	ConfigUpdate        chan *pb.Update
-	mu                  sync.RWMutex // mu is the RW lock to protect the access to config
+	configMu            sync.RWMutex // mu is the RW lock to protect the access to config
+	subMu               sync.RWMutex
 	readOnlyUpdateValue *pb.Update
 	subscribers         map[string]*streamClient
 }

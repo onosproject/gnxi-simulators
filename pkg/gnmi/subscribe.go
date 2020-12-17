@@ -93,8 +93,7 @@ func (s *Server) Subscribe(stream pb.GNMI_SubscribeServer) error {
 		case pb.SubscriptionList_STREAM:
 			// Adds streamClient to the list of subscribers
 			for _, sub := range subscribe.Subscription {
-				s.subscribers[sub.GetPath().String()] = &c
-
+				s.addSubscriber(sub.GetPath().String(), &c)
 			}
 
 			for _, sub := range subscribe.Subscription {
