@@ -1,9 +1,9 @@
-FROM onosproject/golang-build:v0.6.8 as build
+FROM onosproject/golang-build:v1 as build
 
 RUN cd $GOPATH \
     && GO111MODULE=on go get -u \
       github.com/google/gnxi/gnoi_target@6697a080bc2d3287d9614501a3298b3dcfea06df \
-      github.com/google/gnxi/gnoi_cert@6697a080bc2d3287d9614501a3298b3dcfea06df 
+      github.com/google/gnxi/gnoi_cert@6697a080bc2d3287d9614501a3298b3dcfea06df
 
 ENV ONOS_SIMULATORS_ROOT=/go/src/github.com/onosproject/gnxi-simulators
 ENV CGO_ENABLED=0
