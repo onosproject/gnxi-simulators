@@ -18,10 +18,12 @@ import (
 	"reflect"
 	"sync"
 
-	log "github.com/golang/glog"
+	"github.com/onosproject/onos-lib-go/pkg/logging"
 
 	"github.com/onosproject/gnxi-simulators/pkg/events"
 )
+
+var log = logging.GetLogger("dispatcher")
 
 //Dispatcher dispatches the events
 type Dispatcher struct {

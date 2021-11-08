@@ -24,7 +24,6 @@ import (
 
 	"github.com/openconfig/ygot/ytypes"
 
-	log "github.com/golang/glog"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/gnmi/value"
 	"github.com/openconfig/ygot/ygot"

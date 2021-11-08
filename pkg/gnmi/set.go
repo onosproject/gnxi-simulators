@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"reflect"
 
-	log "github.com/golang/glog"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/gnmi/value"
 	"github.com/openconfig/ygot/experimental/ygotutils"

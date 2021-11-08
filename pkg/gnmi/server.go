@@ -16,8 +16,11 @@
 package gnmi
 
 import (
+	"github.com/onosproject/onos-lib-go/pkg/logging"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 )
+
+var log = logging.GetLogger("gnmi")
 
 // NewServer creates an instance of Server with given json config.
 func NewServer(model *Model, config []byte, callback ConfigCallback) (*Server, error) {

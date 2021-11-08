@@ -24,7 +24,8 @@ import (
 	"reflect"
 	"time"
 
-	log "github.com/golang/glog"
+	"github.com/onosproject/onos-lib-go/pkg/logging"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
@@ -36,6 +37,8 @@ import (
 
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 )
+
+var log = logging.GetLogger("main")
 
 func main() {
 	model := gnmi.NewModel(modeldata.ModelData,
@@ -64,22 +67,22 @@ func main() {
 		var err error
 		configData, err = ioutil.ReadFile(*configFile)
 		if err != nil {
-			log.Exitf("error in reading config file: %v", err)
+			log.Fatalf("Error in reading config file: %v", err)
 		}
 	}
 
 	s, err := newServer(model, configData)
 
 	if err != nil {
-		log.Exitf("error in creating gnmi target: %v", err)
+		log.Fatalf("Error in creating gnmi target: %v", err)
 	}
 	pb.RegisterGNMIServer(g, s)
 	reflection.Register(g)
 
-	log.Infof("starting to listen on %s", *bindAddr)
+	log.Infof("Starting gNMI agent to listen on %s", *bindAddr)
 	listen, err := net.Listen("tcp", *bindAddr)
 	if err != nil {
-		log.Exitf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	go func() {
@@ -91,9 +94,9 @@ func main() {
 
 	}()
 
-	log.Info("starting to serve")
+	log.Infof("Starting gNMI agent to serve on %s", *bindAddr)
 	if err := g.Serve(listen); err != nil {
-		log.Exitf("failed to serve: %v", err)
+		log.Fatalf("Failed to serve: %v", err)
 	}
 
 }

@@ -15,7 +15,6 @@
 package main
 
 import (
-	log "github.com/golang/glog"
 	"github.com/google/gnxi/utils/credentials"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
