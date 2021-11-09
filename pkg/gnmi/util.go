@@ -29,7 +29,6 @@ import (
 
 	"github.com/openconfig/ygot/ytypes"
 
-	log "github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/openconfig/goyang/pkg/yang"

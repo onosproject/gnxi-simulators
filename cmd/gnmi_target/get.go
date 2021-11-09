@@ -15,7 +15,6 @@
 package main
 
 import (
-	log "github.com/golang/glog"
 	"github.com/google/gnxi/utils/credentials"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"golang.org/x/net/context"

@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"time"
 
-	log "github.com/golang/glog"
 	"github.com/onosproject/gnxi-simulators/pkg/gnmi"
 	"github.com/onosproject/gnxi-simulators/pkg/utils"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
