@@ -30,6 +30,6 @@ func (s *server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 		return nil, status.Error(codes.PermissionDenied, msg)
 	}
 
-	log.Infof("allowed a Get request: %v", msg)
+	log.Infof("allowed a Get request %+v", req)
 	return s.Server.Get(ctx, req)
 }

@@ -29,7 +29,7 @@ func (s *server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse, 
 		log.Infof("denied a Set request: %v", msg)
 		return nil, status.Error(codes.PermissionDenied, msg)
 	}
-	log.Infof("allowed a Set request: %v", msg)
+	log.Infof("allowed a Set request: %v", req)
 	setResponse, err := s.Server.Set(ctx, req)
 	return setResponse, err
 }

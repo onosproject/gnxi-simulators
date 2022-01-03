@@ -231,6 +231,7 @@ func (s *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse, 
 		log.Error(msg)
 		return nil, status.Error(codes.Internal, msg)
 	}
+	log.Infof("Json tree: %v", jsonTree)
 
 	s.config = rootStruct
 	setResponse := &pb.SetResponse{
@@ -242,7 +243,7 @@ func (s *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse, 
 		update := &pb.Update{
 			Path: response.GetPath(),
 		}
-		s.ConfigUpdate <- update
+		s.ConfigUpdate.In() <- update
 	}
 	return setResponse, nil
 }

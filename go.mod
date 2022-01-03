@@ -3,6 +3,7 @@ module github.com/onosproject/gnxi-simulators
 go 1.16
 
 require (
+	github.com/eapache/channels v1.1.0
 	github.com/golang/protobuf v1.5.0
 	github.com/google/gnxi v0.0.0-20190228205329-8521faedac37
 	github.com/onosproject/onos-lib-go v0.8.0
