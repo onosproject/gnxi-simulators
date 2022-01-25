@@ -59,7 +59,7 @@ func (s *Server) SetDateTime() error {
 		return status.Error(codes.Internal, msg)
 	}
 	s.config = rootStruct
-	s.ConfigUpdate <- update
+	s.ConfigUpdate.In() <- update
 	return nil
 
 }

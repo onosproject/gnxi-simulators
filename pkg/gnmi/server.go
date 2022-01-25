@@ -16,6 +16,7 @@
 package gnmi
 
 import (
+	"github.com/eapache/channels"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 )
@@ -47,7 +48,7 @@ func NewServer(model *Model, config []byte, callback ConfigCallback) (*Server, e
 	}
 	s.readOnlyUpdateValue = &pb.Update{Path: nil, Val: val}
 	s.subscribers = make(map[string]*streamClient)
-	s.ConfigUpdate = make(chan *pb.Update, 100)
+	s.ConfigUpdate = channels.NewRingChannel(100)
 
 	return s, nil
 }
