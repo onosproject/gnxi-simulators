@@ -16,11 +16,8 @@
 package gnmi
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -29,8 +26,6 @@ import (
 
 	"github.com/openconfig/ygot/ytypes"
 
-	"github.com/golang/protobuf/proto"
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/ygot"
 	"google.golang.org/grpc/codes"
@@ -40,30 +35,6 @@ import (
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/gnmi/value"
 )
-
-// getGNMIServiceVersion returns a pointer to the gNMI service version string.
-// The method is non-trivial because of the way it is defined in the proto file.
-func getGNMIServiceVersion() (*string, error) {
-	gzB, _ := (&pb.Update{}).Descriptor()
-	r, err := gzip.NewReader(bytes.NewReader(gzB))
-	if err != nil {
-		return nil, fmt.Errorf("error in initializing gzip reader: %v", err)
-	}
-	defer r.Close()
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("error in reading gzip data: %v", err)
-	}
-	desc := &dpb.FileDescriptorProto{}
-	if err := proto.Unmarshal(b, desc); err != nil {
-		return nil, fmt.Errorf("error in unmarshaling proto: %v", err)
-	}
-	ver, err := proto.GetExtension(desc.Options, pb.E_GnmiService)
-	if err != nil {
-		return nil, fmt.Errorf("error in getting version from proto extension: %v", err)
-	}
-	return ver.(*string), nil
-}
 
 // getChildNode gets a node's child with corresponding schema specified by path
 // element. If not found and createIfNotExist is set as true, an empty node is
