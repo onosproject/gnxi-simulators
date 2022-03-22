@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM onosproject/golang-build:v1 as build
+FROM onosproject/golang-build:v2 as build
 
 RUN cd $GOPATH \
     && GO111MODULE=on go get -u \
