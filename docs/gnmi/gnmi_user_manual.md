@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2022 2020-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 **Table of Contents**
 - [1. Introduction](#1-Introduction)
 - [2. How to Install gNMI Command Line Interface (CLI) ?](#2-How-to-Install-gNMI-Command-Line-Interface-CLI)

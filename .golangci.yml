@@ -1,15 +1,18 @@
+# SPDX-FileCopyrightText: 2022 2020-present Open Networking Foundation <info@opennetworking.org>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 linters:
   enable:
     - gofmt
-    - gocyclo
-    - golint
+    - revive
     - misspell
     - typecheck
     - errcheck
     - dogsled
     - unconvert
     - nakedret
-    - scopelint
+    - exportloopref
 issues:
   exclude-use-default: false
   exclude:
