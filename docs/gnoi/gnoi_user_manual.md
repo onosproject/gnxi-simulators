@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2022 2020-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 **Table of Content**
 - [1. How to test the gNOI simulator?](#1-How-to-test-the-gNOI-simulator)
   - [1.1. How to install gNOI_cert on your machine?](#11-How-to-install-gNOIcert-on-your-machine)

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 2020-present Open Networking Foundation <info@opennetworking.org>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 cmd/gnmi_target/gnmi_target
 cmd/dispatcher_main/dispatcher_main
 vendor
@@ -11,4 +15,6 @@ coverage.txt
 *report*.xml
 *coverage*.xml
 *-output.out
+
+build/build-tools
 
