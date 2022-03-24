@@ -43,7 +43,7 @@ kind: images
 publish: # @HELP publish version on github and dockerhub
 	./build/build-tools/publish-version ${VERSION} onosproject/device-simulator
 
-jenkins-publish: build-tools jenkins-tools # @HELP Jenkins calls this to publish artifacts
+jenkins-publish: # @HELP Jenkins calls this to publish artifacts
 	./build/bin/push-images
 	./build/build-tools/release-merge-commit
 
