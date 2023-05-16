@@ -4,10 +4,8 @@
 
 FROM onosproject/golang-build:v1.2.0 as build
 
-RUN cd $GOPATH \
-    && GO111MODULE=on go get -u \
-      github.com/google/gnxi/gnoi_target@6697a080bc2d3287d9614501a3298b3dcfea06df \
-      github.com/google/gnxi/gnoi_cert@6697a080bc2d3287d9614501a3298b3dcfea06df
+RUN cd $GOPATH && GO111MODULE=on go install github.com/google/gnxi/gnoi_target@c86e52276d175750acd8e5abc62dd35f5393713f
+RUN cd $GOPATH && GO111MODULE=on go install github.com/google/gnxi/gnoi_cert@c86e52276d175750acd8e5abc62dd35f5393713f
 
 ENV ONOS_SIMULATORS_ROOT=/go/src/github.com/onosproject/gnxi-simulators
 ENV CGO_ENABLED=0
