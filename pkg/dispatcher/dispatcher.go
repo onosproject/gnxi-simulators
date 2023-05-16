@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package dispatcher :
 package dispatcher
 
 import (
@@ -15,7 +16,7 @@ import (
 
 var log = logging.GetLogger("dispatcher")
 
-//Dispatcher dispatches the events
+// Dispatcher dispatches the events
 type Dispatcher struct {
 	handlers map[reflect.Type][]reflect.Value
 	lock     *sync.RWMutex
